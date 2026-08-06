@@ -34,7 +34,7 @@ export function exportStoryPdf(story: Story, nodes: BranchNode[]): void {
   doc.setFontSize(10);
   doc.setTextColor(110, 106, 100);
   doc.text(`${story.genres.join(" · ")}`, MARGIN, 70);
-  doc.text(`Seeded by ${seedAuthor.penName} · ${story.words} words · ${story.readingMinutes} min`, MARGIN, 86);
+  doc.text(`Seeded by ${seedAuthor?.penName ?? "A quiet author"} · ${story.words} words · ${story.readingMinutes} min`, MARGIN, 86);
 
   doc.setTextColor(29, 29, 27);
   doc.setFont("times", "normal");
@@ -60,7 +60,7 @@ export function exportStoryPdf(story: Story, nodes: BranchNode[]): void {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(110, 106, 100);
-    doc.text(`${node.type} · ${author.penName} · ${node.createdAt}`, MARGIN, y);
+    doc.text(`${node.type} · ${author?.penName ?? "A quiet author"} · ${node.createdAt}`, MARGIN, y);
     y += 22;
     doc.setTextColor(29, 29, 27);
     doc.setFont("times", "normal");
@@ -102,7 +102,7 @@ export function exportAnthologyPdf(
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(110, 106, 100);
-    doc.text(`by ${author.penName} · ${story.words} words`, MARGIN, y);
+    doc.text(`by ${author?.penName ?? "A quiet author"} · ${story.words} words`, MARGIN, y);
     y += 30;
 
     doc.setFont("times", "normal");
@@ -126,7 +126,7 @@ export function exportAnthologyPdf(
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(110, 106, 100);
-      doc.text(`${node.type} · ${nodeAuthor.penName}`, MARGIN, y);
+      doc.text(`${node.type} · ${nodeAuthor?.penName ?? "A quiet author"}`, MARGIN, y);
       y += 20;
       doc.setFont("times", "normal");
       doc.setFontSize(11.5);
@@ -162,7 +162,7 @@ export function exportCritiquesPdf(story: Story, critiques: Critique[]): void {
     doc.setFont("times", "italic");
     doc.setFontSize(15);
     doc.setTextColor(29, 29, 27);
-    doc.text(`by ${author.penName}`, MARGIN, y);
+    doc.text(`by ${author?.penName ?? "A quiet author"}`, MARGIN, y);
     y += 22;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);

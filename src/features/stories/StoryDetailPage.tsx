@@ -290,11 +290,11 @@ function ReadingPane({
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-3">
                   {story.contributorIds.slice(0, 4).map((id) => (
-                    <Avatar key={id} text={authorById(id).avatar} size="sm" className="ring-2 ring-background" />
+                    <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-background" />
                   ))}
                 </div>
                 <p className="text-sm text-secondary max-w-[260px] leading-snug">
-                  {story.contributorIds.slice(0, 3).map((id) => authorById(id).penName).join(", ")}
+                  {story.contributorIds.slice(0, 3).map((id) => authorById(id)?.penName).filter(Boolean).join(", ")}
                   {story.contributorIds.length > 3 && ` +${story.contributorIds.length - 3} more`}
                 </p>
               </div>
@@ -324,18 +324,22 @@ function ReadingPane({
                 <Markdown text={story.body} />
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
-                {story.beautifulWords.map((bw) => (
-                  <span
-                    key={bw.wordId}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-[13px]"
-                  >
-                    {wordById(bw.wordId).term}
-                    {bw.count > 1 && <span className="opacity-60"> ×{bw.count}</span>}
-                  </span>
-                ))}
+                {story.beautifulWords.map((bw) => {
+                  const word = wordById(bw.wordId);
+                  if (!word) return null;
+                  return (
+                    <span
+                      key={bw.wordId}
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-[13px]"
+                    >
+                      {word.term}
+                      {bw.count > 1 && <span className="opacity-60"> ×{bw.count}</span>}
+                    </span>
+                  );
+                })}
               </div>
               <p className="text-[13px] text-secondary/80 italic">
-                Seeded by {authorById(story.seedAuthorId).penName} · {story.createdAt} · waiting for its next sentence.
+                Seeded by {authorById(story.seedAuthorId)?.penName ?? "a quiet author"} · {story.createdAt} · waiting for its next sentence.
               </p>
             </div>
           )}
@@ -479,11 +483,11 @@ function MobileView({
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <div className="flex -space-x-3">
             {story.contributorIds.slice(0, 3).map((id) => (
-              <Avatar key={id} text={authorById(id).avatar} size="sm" className="ring-2 ring-background" />
+              <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-background" />
             ))}
           </div>
           <p className="text-sm text-secondary">
-            {story.contributorIds.slice(0, 2).map((id) => authorById(id).penName).join(", ")}
+            {story.contributorIds.slice(0, 2).map((id) => authorById(id)?.penName).filter(Boolean).join(", ")}
           </p>
           <span className="text-sm text-secondary">{story.words.toLocaleString()} words</span>
         </div>
@@ -520,11 +524,15 @@ function MobileView({
             <Markdown text={story.body} />
           </div>
           <div className="flex flex-wrap gap-2">
-            {story.beautifulWords.map((bw) => (
-              <span key={bw.wordId} className="rounded-full border border-border bg-card px-4 py-2 text-[13px]">
-                {wordById(bw.wordId).term}
-              </span>
-            ))}
+            {story.beautifulWords.map((bw) => {
+              const word = wordById(bw.wordId);
+              if (!word) return null;
+              return (
+                <span key={bw.wordId} className="rounded-full border border-border bg-card px-4 py-2 text-[13px]">
+                  {word.term}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}

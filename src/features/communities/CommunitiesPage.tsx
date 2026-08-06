@@ -77,7 +77,7 @@ export default function CommunitiesPage() {
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <div className="flex -space-x-3">
                       {community.memberIds.slice(0, 4).map((id) => (
-                        <Avatar key={id} text={authorById(id).avatar} size="sm" className="ring-2 ring-card" />
+                        <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-card" />
                       ))}
                     </div>
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent">

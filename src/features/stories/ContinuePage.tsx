@@ -225,7 +225,7 @@ export default function ContinuePage() {
                   >
                     <p className="text-sm font-semibold truncate">{opt.label}</p>
                     <p className={cn("text-xs", active ? "text-background/70" : "text-secondary")}>
-                      by {author.penName}
+                      by {author?.penName ?? "A quiet author"}
                     </p>
                   </button>
                 );
@@ -318,7 +318,7 @@ export default function ContinuePage() {
             {wordIds.length > 0 && (
               <p className="text-[13px] text-secondary">
                 Attached:{" "}
-                {wordIds.map((id) => wordById(id).term).join(", ")}
+                {wordIds.map((id) => wordById(id)?.term).filter(Boolean).join(", ")}
               </p>
             )}
           </section>

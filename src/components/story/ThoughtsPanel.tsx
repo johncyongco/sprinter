@@ -71,10 +71,10 @@ export function ThoughtsPanel({
                 transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.3) }}
                 className="flex gap-4 rounded-3xl border-l-2 border-gold/50 bg-card p-6"
               >
-                <Avatar text={author.avatar} size="sm" className="mt-1" />
+                <Avatar text={author?.avatar ?? "?"} size="sm" className="mt-1" />
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold">{author.penName}</p>
+                    <p className="text-sm font-semibold">{author?.penName ?? "A quiet author"}</p>
                     <span className="text-[12px] text-secondary">{t.createdAt}</span>
                   </div>
                   {t.quote && (

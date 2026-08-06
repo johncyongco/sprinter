@@ -153,9 +153,9 @@ function CompactStoryCard({
           </h3>
           <div className="flex items-center gap-2 text-[12px] text-secondary">
             <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
-              {author.avatar}
+              {author?.avatar ?? "?"}
             </span>
-            <span className="truncate">{author.penName}</span>
+            <span className="truncate">{author?.penName ?? "A quiet author"}</span>
           </div>
           <div className="flex items-center gap-3 text-[12px] text-secondary">
             <span className="flex items-center gap-1">

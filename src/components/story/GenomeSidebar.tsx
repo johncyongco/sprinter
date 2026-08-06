@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { GitFork, BookOpen, Users, Clock, Repeat } from "lucide-react";
+import { GitFork, BookOpen, Users, Clock } from "lucide-react";
 import type { Story } from "@/types";
 import { getGenomeSummary } from "@/services/stories";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -83,19 +83,6 @@ export function GenomeSidebar({ story }: { story: Story }) {
             Pacing
           </p>
           <p className="font-display text-xl capitalize">{genome.pacing}</p>
-        </div>
-      </div>
-
-      <div>
-        <p className="uppercase tracking-[0.25em] text-xs text-secondary font-semibold mb-3 flex items-center gap-2">
-          <Repeat className="h-3.5 w-3.5" /> Recurring Words
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {genome.recurring.map((r) => (
-            <span key={r.word} className="rounded-full bg-primary/5 border border-border px-3 py-1.5 text-[12px] text-primary">
-              {r.word} <span className="text-secondary/70">×{r.count}</span>
-            </span>
-          ))}
         </div>
       </div>
     </motion.aside>

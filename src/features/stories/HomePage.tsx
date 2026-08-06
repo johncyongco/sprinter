@@ -149,6 +149,7 @@ function Hero() {
 }
 
 function WeeklyPromptCard() {
+  if (!WEEKLY_PROMPT.title) return null;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -182,6 +183,7 @@ function WeeklyPromptCard() {
 }
 
 function RelayCard() {
+  if (!RELAY.storyId) return null;
   const current = authorById(RELAY.current);
   return (
     <motion.div
@@ -201,7 +203,7 @@ function RelayCard() {
         <h3 className="font-display text-4xl tracking-[-0.03em] leading-tight">The Exchange</h3>
         <p className="text-background/70 leading-relaxed">
           Twenty hours, nineteen hands, one story. Hand {RELAY.hand} of {RELAY.hands} is with{" "}
-          <span className="text-background font-semibold">{current.penName}</span> now.
+          <span className="text-background font-semibold">{current?.penName ?? "another writer"}</span> now.
         </p>
       </div>
 

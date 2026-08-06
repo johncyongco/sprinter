@@ -40,7 +40,7 @@ export async function createWord(input: CreateWordInput): Promise<BeautifulWord>
   return word;
 }
 
-export async function getWord(id: string): Promise<BeautifulWord> {
+export async function getWord(id: string): Promise<BeautifulWord | null> {
   await delay(140);
   return wordById(id);
 }
@@ -58,6 +58,7 @@ export async function getWordStories(wordId: string) {
 export async function getWordRelations(wordId: string): Promise<WordRelation[]> {
   await delay(200);
   const target = wordById(wordId);
+  if (!target) return [];
   const storiesWith = new Set(
     STORIES.filter((s) => s.beautifulWords.some((bw) => bw.wordId === wordId)).map((s) => s.id),
   );

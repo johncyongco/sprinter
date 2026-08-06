@@ -118,9 +118,9 @@ export default function CommunityDetailPage() {
                 return (
                   <div key={post.id} className="rounded-3xl border border-border bg-card p-7 space-y-3">
                     <div className="flex items-center gap-3">
-                      <Avatar text={author.avatar} size="sm" />
+                      <Avatar text={author?.avatar ?? "?"} size="sm" />
                       <div>
-                        <p className="text-sm font-semibold">{author.penName}</p>
+                        <p className="text-sm font-semibold">{author?.penName ?? "A quiet author"}</p>
                         <p className="text-xs text-secondary">{post.createdAt}</p>
                       </div>
                     </div>

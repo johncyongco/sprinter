@@ -88,7 +88,7 @@ export function BranchTree({
       </div>
 
       <div className="space-y-0">
-        <SeedNode story={story} author={seedAuthor.penName} />
+        <SeedNode story={story} author={seedAuthor?.penName ?? "A quiet author"} />
 
         <BranchList
           tree={tree.children}
@@ -165,7 +165,7 @@ function BranchList({
                   {TYPE_LABEL[tn.node.type]}
                 </span>
                 <span className="text-xs text-secondary">
-                  {authorById(tn.node.authorId).penName} · {tn.node.createdAt}
+                  {authorById(tn.node.authorId)?.penName ?? "A quiet author"} · {tn.node.createdAt}
                 </span>
               </div>
               <p className="font-display text-[22px] tracking-[-0.02em] leading-tight mb-2">
@@ -210,7 +210,7 @@ function NodeDetail({ node }: { node: BranchNode }) {
         <span className={cn("rounded-full px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em]", toneClass(TYPE_TONES[node.type]))}>
           {TYPE_LABEL[node.type]}
         </span>
-        <span className="text-sm text-secondary">{author.penName} · {node.createdAt}</span>
+        <span className="text-sm text-secondary">{author?.penName ?? "A quiet author"} · {node.createdAt}</span>
       </div>
       <h2 className="font-display text-4xl tracking-[-0.04em] leading-tight">{node.title}</h2>
       <div className="prose-story">
@@ -218,9 +218,11 @@ function NodeDetail({ node }: { node: BranchNode }) {
       </div>
       {node.beautifulWordIds.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
-          {node.beautifulWordIds.map((id) => (
-            <WordTag key={id} word={wordById(id)} />
-          ))}
+          {node.beautifulWordIds.map((id) => {
+            const word = wordById(id);
+            if (!word) return null;
+            return <WordTag key={id} word={word} />;
+          })}
         </div>
       )}
       <AnimatePresence>
@@ -229,7 +231,7 @@ function NodeDetail({ node }: { node: BranchNode }) {
           animate={{ opacity: 1 }}
           className="border-l-2 border-gold/50 pl-5 font-display italic text-secondary"
         >
-          {author.favoriteLine}
+          {author?.favoriteLine ?? ""}
         </motion.blockquote>
       </AnimatePresence>
     </div>

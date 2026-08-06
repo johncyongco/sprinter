@@ -7,6 +7,13 @@ export async function getThoughts(storyId: string): Promise<Thought[]> {
   return thoughtsFor(storyId).map((t) => ({ ...t }));
 }
 
+export async function getAllThoughts(): Promise<Thought[]> {
+  await delay(200);
+  return THOUGHTS.map((t) => ({ ...t })).sort((a, b) =>
+    a.createdAt < b.createdAt ? 1 : -1,
+  );
+}
+
 export async function addThought(
   storyId: string,
   content: string,

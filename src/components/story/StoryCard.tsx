@@ -70,9 +70,9 @@ export function StoryCard({
 
           <div className="flex items-center gap-3 text-secondary text-sm font-medium">
             <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-              {seedAuthor.avatar}
+              {seedAuthor?.avatar ?? "?"}
             </span>
-            <span className="truncate">{seedAuthor.penName}</span>
+            <span className="truncate">{seedAuthor?.penName ?? "A quiet author"}</span>
           </div>
 
           <div className="flex items-center justify-between pt-1">

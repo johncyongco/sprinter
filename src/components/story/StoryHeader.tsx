@@ -17,8 +17,9 @@ export function StoryHeader({
   const [bookmarked, setBookmarked] = useState(false);
 
   const authorNames = story.contributorIds
-    .map((id) => authorById(id).penName)
-    .slice(0, 3);
+    .map((id) => authorById(id)?.penName)
+    .filter(Boolean)
+    .slice(0, 3) as string[];
 
   return (
     <motion.header
@@ -50,7 +51,7 @@ export function StoryHeader({
           <div className="flex items-center gap-3">
             <div className="flex -space-x-3">
               {story.contributorIds.slice(0, 4).map((id) => (
-                <Avatar key={id} text={authorById(id).avatar} size="sm" className="ring-2 ring-background" />
+                <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-background" />
               ))}
             </div>
             <p className="text-sm text-secondary max-w-[240px] leading-snug">

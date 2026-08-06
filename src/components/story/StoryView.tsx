@@ -20,18 +20,22 @@ export function StoryView({
     >
       <Markdown text={story.body} className="prose-story" />
       <div className="flex flex-wrap items-center gap-2 pt-2">
-        {story.beautifulWords.map((bw) => (
-          <WordTag
-            key={bw.wordId}
-            word={wordById(bw.wordId)}
-            count={bw.count}
-            interactive={Boolean(onWordSelect)}
-            className={onWordSelect ? "cursor-pointer" : ""}
-          />
-        ))}
+        {story.beautifulWords.map((bw) => {
+          const word = wordById(bw.wordId);
+          if (!word) return null;
+          return (
+            <WordTag
+              key={bw.wordId}
+              word={word}
+              count={bw.count}
+              interactive={Boolean(onWordSelect)}
+              className={onWordSelect ? "cursor-pointer" : ""}
+            />
+          );
+        })}
       </div>
       <p className="text-[13px] text-secondary/80 italic">
-        Seeded by {authorById(story.seedAuthorId).penName} ·{" "}
+        Seeded by {authorById(story.seedAuthorId)?.penName ?? "a quiet author"} ·{" "}
         {story.createdAt} · waiting for its next sentence.
       </p>
     </motion.article>

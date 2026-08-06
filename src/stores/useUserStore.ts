@@ -46,19 +46,21 @@ export const GOAL_OPTIONS: WritingGoal[] = [
   { id: "g-seed", label: "Seed a new story", wordsPerSession: 600 },
 ];
 
+const GUEST_USER: UserProfile = {
+  id: "me",
+  penName: "Guest",
+  avatar: "G",
+  bio: "",
+  favoriteLine: "",
+  genres: [],
+  favoriteWordIds: [],
+  goals: DEFAULTS,
+};
+
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
-      user: {
-        id: "me",
-        penName: "Guest",
-        avatar: "G",
-        bio: "",
-        favoriteLine: "",
-        genres: [],
-        favoriteWordIds: [],
-        goals: DEFAULTS,
-      },
+      user: GUEST_USER,
       onboarded: true,
       signIn: (provider = "email") =>
         set({
@@ -97,7 +99,11 @@ export const useUserStore = create<UserState>()(
         set((s) => (s.user ? { user: { ...s.user, ...patch } } : {})),
       signOut: () => set({ user: null, onboarded: false }),
     }),
-    { name: "sprinter-user" },
+    {
+      name: "sprinter-user",
+      version: 2,
+      migrate: () => ({ user: GUEST_USER, onboarded: true }),
+    },
   ),
 );
 

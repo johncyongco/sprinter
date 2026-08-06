@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Repeat, Users, GitFork, BookOpen, Clock } from "lucide-react";
+import { Users, GitFork, BookOpen, Clock } from "lucide-react";
 import type { Story } from "@/types";
 import { getGenomeSummary } from "@/services/stories";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -68,18 +68,6 @@ export function GenomePanel({ story }: { story: Story }) {
             {t}
           </span>
         ))}
-      </GenomeRow>
-
-      <GenomeRow label="Recurring Words" icon={<Repeat className="h-3.5 w-3.5" />}>
-        {genome.recurring.length > 0 ? (
-          genome.recurring.map((r) => (
-            <span key={r.word} className="rounded-full bg-primary/5 border border-border px-3 py-1.5 text-[12px] text-primary">
-              {r.word} <span className="text-secondary/70">×{r.count}</span>
-            </span>
-          ))
-        ) : (
-          <span className="text-sm text-secondary italic">Still finding its words.</span>
-        )}
       </GenomeRow>
     </motion.div>
   );

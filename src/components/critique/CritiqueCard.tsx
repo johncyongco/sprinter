@@ -28,9 +28,9 @@ export function CritiqueCard({
     >
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <Avatar text={author.avatar} size="sm" />
+          <Avatar text={author?.avatar ?? "?"} size="sm" />
           <div>
-            <p className="font-semibold text-[15px]">{author.penName}</p>
+            <p className="font-semibold text-[15px]">{author?.penName ?? "A quiet author"}</p>
             <p className="text-[13px] text-secondary">{critique.createdAt}</p>
           </div>
         </div>
