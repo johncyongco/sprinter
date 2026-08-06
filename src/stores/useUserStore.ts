@@ -49,8 +49,17 @@ export const GOAL_OPTIONS: WritingGoal[] = [
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
-      user: null,
-      onboarded: false,
+      user: {
+        id: "me",
+        penName: "Guest",
+        avatar: "G",
+        bio: "",
+        favoriteLine: "",
+        genres: [],
+        favoriteWordIds: [],
+        goals: DEFAULTS,
+      },
+      onboarded: true,
       signIn: (provider = "email") =>
         set({
           user: {

@@ -28,7 +28,6 @@ const NotificationsPage = lazyPage(() => import("@/features/notifications/Notifi
 const ProfilePage = lazyPage(() => import("@/features/profile/ProfilePage"));
 const SettingsPage = lazyPage(() => import("@/features/profile/SettingsPage"));
 const SearchPage = lazyPage(() => import("@/features/search/SearchPage"));
-const LoginPage = lazyPage(() => import("@/features/auth/LoginPage"));
 const OnboardingPage = lazyPage(() => import("@/features/auth/OnboardingPage"));
 const NotFoundPage = lazyPage(() => import("@/features/NotFoundPage"));
 
@@ -60,15 +59,11 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "login",
-    element: <LoginPage />,
-  },
-  {
     path: "onboarding",
     element: <OnboardingPage />,
   },
   {
     path: "signout",
-    element: <Navigate to="/login" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);

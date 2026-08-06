@@ -64,8 +64,6 @@ function AuthRoot() {
       window.location.assign("/");
     } else if (user && !onboarded && location !== "/onboarding") {
       window.location.assign("/onboarding");
-    } else if (!user && !isAuthPage) {
-      window.location.assign("/login");
     }
   }, [user, onboarded, location]);
 
