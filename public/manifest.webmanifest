@@ -1,0 +1,40 @@
+{
+  "name": "Sprinter — Continue Someone's Thought",
+  "short_name": "Sprinter",
+  "description": "A calm, collaborative writing platform where stories evolve through many minds. Someone is always waiting for your next sentence.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F6F4EF",
+  "theme_color": "#F6F4EF",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Continue Writing",
+      "short_name": "Continue",
+      "url": "/explore",
+      "description": "Find a story waiting for your next sentence."
+    },
+    {
+      "name": "Word Vault",
+      "short_name": "Words",
+      "url": "/words",
+      "description": "Browse the beautiful words."
+    }
+  ]
+}

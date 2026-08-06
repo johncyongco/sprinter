@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Sprinter — Design Tokens
+   Calm. Generous. Editorial. One neutral background, smooth
+   sans headlines, slab-serif body, delicate borders, slow motion.
+   ============================================================ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-background: #f6f4ef;
+  --color-surface: #fcfaf7;
+  --color-card: #ffffff;
+
+  --color-primary: #1d1d1b;
+  --color-secondary: #6e6a64;
+
+  --color-border: #ddd8cf;
+
+  --color-accent: #5f7384;
+  --color-gold: #b89b67;
+
+  --color-success: #7b9274;
+  --color-warning: #c69c5a;
+  --color-danger: #b56a6a;
+
+  --font-display: "Mulish", system-ui, sans-serif;
+  --font-sans: "Roboto Slab", "Georgia", "Times New Roman", serif;
+}
+
+.dark {
+  --color-background: #171614;
+  --color-surface: #1d1b19;
+  --color-card: #24211e;
+
+  --color-primary: #ece6da;
+  --color-secondary: #a49d91;
+
+  --color-border: #34312b;
+
+  --color-accent: #8fa8bc;
+  --color-gold: #c9ad7d;
+
+  --color-success: #a0b591;
+  --color-warning: #d3ab69;
+  --color-danger: #c98a8a;
+}
+
+@theme inline {
+  /* ===== COLORS ===== */
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
+
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+
+  --color-border: var(--color-border);
+
+  --color-accent: var(--color-accent);
+  --color-gold: var(--color-gold);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+
+  /* ===== TYPOGRAPHY ===== */
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+
+  /* ===== RADIUS ===== */
+  --radius-xs: 10px;
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 34px;
+  --radius-2xl: 42px;
+
+  /* ===== SHADOWS ===== */
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 8px 30px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.04);
+
+  /* ===== TRANSITIONS ===== */
+  --ease-fluid: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --animate-fade-up: fade-up 0.6s var(--ease-fluid) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-primary font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    @apply bg-accent/20;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-accent) 70%, transparent);
+    outline-offset: 2px;
+  }
+
+  /* Delicate scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-secondary) 35%, transparent)
+      transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-secondary) 35%, transparent);
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility prose-story {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 2;
+  color: color-mix(in srgb, var(--color-primary) 90%, transparent);
+  max-width: 65ch;
+}
+
+@layer components {
+  .score-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--color-accent) 0%,
+      var(--color-accent) var(--range-fill, 50%),
+      var(--color-border) var(--range-fill, 50%),
+      var(--color-border) 100%
+    );
+    outline: none;
+  }
+  .score-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 999px;
+    background: var(--color-card);
+    border: 2px solid var(--color-accent);
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.2s var(--ease-fluid);
+  }
+  .score-range::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+  .score-range::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 999px;
+    background: var(--color-card);
+    border: 2px solid var(--color-accent);
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+  }
+}

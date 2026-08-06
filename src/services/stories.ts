@@ -1,0 +1,224 @@
+import { STORIES, delay, nodesFor, critiquesFor, makeCover } from "./mock";
+import { useUserStore } from "@/stores/useUserStore";
+import type {
+  CompletionStatus,
+  Emotion,
+  Genre,
+  Perspective,
+  Pacing,
+  Story,
+  Theme,
+} from "@/types";
+
+export type SortKey =
+  | "newest"
+  | "mostContinued"
+  | "editorial"
+  | "needsContinuation"
+  | "longest";
+
+export interface StoryFilters {
+  genres: Genre[];
+  emotions: Emotion[];
+  themes: Theme[];
+  perspectives: Perspective[];
+  statuses: CompletionStatus[];
+  sort: SortKey;
+  query?: string;
+}
+
+export const EMPTY_FILTERS: StoryFilters = {
+  genres: [],
+  emotions: [],
+  themes: [],
+  perspectives: [],
+  statuses: [],
+  sort: "newest",
+};
+
+export async function getStories(): Promise<Story[]> {
+  await delay(200);
+  return STORIES.map((s) => ({ ...s, contributorIds: [...s.contributorIds] }));
+}
+
+export async function getStory(id: string): Promise<Story> {
+  await delay(180);
+  const story = STORIES.find((s) => s.id === id);
+  if (!story) throw new Error(`Story not found: ${id}`);
+  return { ...story, contributorIds: [...story.contributorIds] };
+}
+
+export async function getStoryBySlug(slug: string): Promise<Story> {
+  await delay(180);
+  const story = STORIES.find((s) => s.slug === slug);
+  if (!story) throw new Error(`Story not found: ${slug}`);
+  return { ...story, contributorIds: [...story.contributorIds] };
+}
+
+export interface NewStoryInput {
+  title: string;
+  cover?: string;
+  genres: Genre[];
+  emotion: Emotion[];
+  themes: Theme[];
+  perspective: Perspective;
+  pacing: Pacing;
+  body: string;
+}
+
+function slugify(title: string): string {
+  const base = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  let slug = base;
+  let n = 2;
+  while (STORIES.some((s) => s.slug === slug)) {
+    slug = `${base}-${n}`;
+    n += 1;
+  }
+  return slug;
+}
+
+export async function createStory(input: NewStoryInput): Promise<Story> {
+  await delay(420);
+  const user = useUserStore.getState().user;
+  const body = input.body.trim();
+  const title = input.title.trim();
+  const words = body.replace(/\s+/g, " ").split(" ").filter(Boolean).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const story: Story = {
+    id: `st-${Date.now()}`,
+    title,
+    slug: slugify(title),
+    cover: input.cover ?? makeCover(title),
+    seedAuthorId: user?.id ?? "a1",
+    genres: input.genres,
+    emotion: input.emotion,
+    themes: input.themes,
+    perspective: input.perspective,
+    pacing: input.pacing,
+    status: "Seed",
+    createdAt: today,
+    updatedAt: today,
+    body,
+    words,
+    readingMinutes: Math.max(1, Math.round(words / 220)),
+    beautifulWords: [],
+    completion: 5,
+    contributorIds: [],
+    branchCount: 0,
+    continuationCount: 0,
+    critiqueCount: 0,
+    isEditorialPick: false,
+    isWeeklyPrompt: false,
+    excerpt: body.split(/\s+/).slice(0, 42).join(" ") + "…",
+  };
+  STORIES.unshift(story);
+  return story;
+}
+
+export async function getStoriesByFilter(
+  filters: StoryFilters,
+  page = 0,
+  perPage = 8,
+): Promise<{ items: Story[]; next: number | null }> {
+  await delay(260);
+  let items = [...STORIES];
+
+  if (filters.query) {
+    const q = filters.query.toLowerCase();
+    items = items.filter((s) => s.title.toLowerCase().includes(q));
+  }
+  if (filters.genres.length) {
+    items = items.filter((s) => filters.genres.some((g) => s.genres.includes(g)));
+  }
+  if (filters.emotions.length) {
+    items = items.filter((s) => filters.emotions.some((e) => s.emotion.includes(e)));
+  }
+  if (filters.themes.length) {
+    items = items.filter((s) => filters.themes.some((t) => s.themes.includes(t)));
+  }
+  if (filters.perspectives.length) {
+    items = items.filter((s) => filters.perspectives.includes(s.perspective));
+  }
+  if (filters.statuses.length) {
+    items = items.filter((s) => filters.statuses.includes(s.status));
+  }
+
+  switch (filters.sort) {
+    case "newest":
+      items.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+      break;
+    case "mostContinued":
+      items.sort((a, b) => b.continuationCount - a.continuationCount);
+      break;
+    case "editorial":
+      items.sort((a, b) => Number(b.isEditorialPick) - Number(a.isEditorialPick));
+      break;
+    case "needsContinuation":
+      items.sort((a, b) => a.completion - b.completion);
+      break;
+    case "longest":
+      items.sort((a, b) => b.words - a.words);
+      break;
+  }
+
+  const start = page * perPage;
+  const slice = items.slice(start, start + perPage);
+  const next = start + perPage < items.length ? page + 1 : null;
+  return { items: slice.map((s) => ({ ...s })), next };
+}
+
+export async function getHomeFeed(): Promise<{
+  waiting: Story[];
+  weeklyPrompt: Story | null;
+  relay: Story | null;
+  picks: Story[];
+  trendingWordIds: string[];
+}> {
+  await delay(260);
+  const waiting = [...STORIES]
+    .filter((s) => s.status !== "Complete")
+    .sort((a, b) => b.continuationCount - a.continuationCount)
+    .slice(0, 6);
+  const weeklyPrompt = STORIES.find((s) => s.isWeeklyPrompt) ?? null;
+  const relay = STORIES.find((s) => s.id === "st-111") ?? null;
+  const picks = STORIES.filter((s) => s.isEditorialPick).slice(0, 3);
+  const trendingWordIds = ["w-yr", "w-pil", "w-sil", "w-mrc", "w-dst", "w-hom", "w-mem"];
+  return { waiting, weeklyPrompt, relay, picks, trendingWordIds };
+}
+
+export function getGenomeSummary(story: Story) {
+  const nodes = nodesFor(story.id);
+  const critiques = critiquesFor(story.id);
+  const recurring: { word: string; count: number }[] = [];
+  const freq = new Map<string, number>();
+  for (const m of (story.body + " " + nodes.map((n) => n.body).join(" ")).toLowerCase().split(/\W+/)) {
+    if (m.length > 4) freq.set(m, (freq.get(m) ?? 0) + 1);
+  }
+  const stop = new Set([
+    "there", "their", "through", "about", "would", "could", "should", "which",
+    "these", "those", "thing", "things", "something", "nothing", "everything",
+    "have", "with", "from", "than", "that", "this", "what", "when", "then",
+    "were", "been", "being", "very", "just", "like", "even", "only", "still",
+    "after", "before", "until", "while", "because",
+  ]);
+  for (const [w, c] of freq) {
+    if (c > 2 && !stop.has(w)) recurring.push({ word: w, count: c });
+  }
+  recurring.sort((a, b) => b.count - a.count);
+
+  const totalWords = story.words + nodes.reduce((sum, n) => sum + n.words, 0);
+  return {
+    emotion: story.emotion,
+    themes: story.themes,
+    perspective: story.perspective,
+    pacing: story.pacing,
+    recurring: recurring.slice(0, 6),
+    completion: Math.min(100, story.completion + nodes.length * 4),
+    contributors: story.contributorIds.length,
+    branchCount: story.branchCount,
+    continuationCount: story.continuationCount,
+    critiqueCount: critiques.length,
+    readingMinutes: Math.max(1, Math.round(totalWords / 220)),
+    totalWords,
+  };
+}
