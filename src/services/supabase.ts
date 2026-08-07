@@ -195,12 +195,6 @@ export async function insertPublishedStory(story: Story): Promise<Story | null> 
   }
 }
 
-export async function deleteStoryBySlug(slug: string): Promise<void> {
-  if (!isBackendUp()) return;
-  const { error } = await supabase!.from("stories").delete().eq("slug", slug);
-  if (error) throw error;
-}
-
 /* --------------------- continuations --------------------- */
 
 export function continuationRowToNode(row: ContinuationRow): BranchNode {
