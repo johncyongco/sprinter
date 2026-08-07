@@ -3,6 +3,14 @@ import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 import { AppLayout } from "@/app/layouts/AppLayout";
 import { ErrorPage } from "@/app/providers/ErrorPage";
 
+function AuthCallback() {
+  return (
+    <div className="min-h-screen bg-background grid place-items-center text-secondary text-sm">
+      Completing sign-in…
+    </div>
+  );
+}
+
 type Loader = () => Promise<{ default: ComponentType<Record<string, never>> }>;
 
 function lazyPage(loader: Loader): LazyExoticComponent<ComponentType<Record<string, never>>> {
@@ -72,6 +80,10 @@ export const router = createBrowserRouter([
   {
     path: "login",
     element: <LoginPage />,
+  },
+  {
+    path: "auth/v1/callback",
+    element: <AuthCallback />,
   },
   {
     path: "signout",

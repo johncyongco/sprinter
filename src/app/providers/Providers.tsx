@@ -72,14 +72,15 @@ function AuthRoot() {
   // A real, authenticated account has a provider; the default guest has none.
   const isAuthenticated = Boolean(user?.provider);
   const isAuthPage = location === "/login" || location === "/onboarding";
+  const isAuthCallback = location === "/auth/v1/callback";
 
   useEffect(() => {
-    if (isAuthenticated && onboarded && isAuthPage) {
+    if (isAuthenticated && onboarded && (isAuthPage || isAuthCallback)) {
       window.location.assign("/");
     } else if (isAuthenticated && !onboarded && location !== "/onboarding") {
       window.location.assign("/onboarding");
     }
-  }, [isAuthenticated, onboarded, isAuthPage, location]);
+  }, [isAuthenticated, onboarded, isAuthPage, isAuthCallback, location]);
 
   return null;
 }

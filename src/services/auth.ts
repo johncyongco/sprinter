@@ -46,6 +46,11 @@ export function onAuthStateChange(
   } = supabase!.auth.onAuthStateChange((_event, session) => {
     cb(session?.user ?? null);
   });
+  // Emit any session already in localStorage OR recovered from the
+  // callback URL immediately, so a refresh / deep-link signs the user in.
+  void supabase!.auth.getSession().then(({ data }) => {
+    cb(data.session?.user ?? null);
+  });
   return () => subscription.unsubscribe();
 }
 
