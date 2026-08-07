@@ -6,6 +6,8 @@ import {
   insertPublishedStory,
   fetchSavedSeeds,
   insertSavedSeed,
+  deleteSavedSeed,
+  deletePublishedStory,
 } from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
 import type {
@@ -166,6 +168,30 @@ export async function publishStory(storyId: string): Promise<Story> {
   }
   persistLibrary();
   return { ...story, contributorIds: [...story.contributorIds] };
+}
+
+/**
+ * Delete a story the user owns — from the saved list and (if published)
+ * from the library/Explore, both locally and in Supabase.
+ */
+export async function deleteStory(storyId: string): Promise<void> {
+  const me = useUserStore.getState().user?.id ?? "me";
+
+  // Published: remove from Supabase stories (+ cascading continuations) and local STORIES.
+  const publishedLocalIdx = STORIES.findIndex((s) => s.id === storyId);
+  if (publishedLocalIdx !== -1) {
+    await deletePublishedStory(storyId);
+    STORIES.splice(publishedLocalIdx, 1);
+  }
+
+  // Saved: remove from Supabase saved_seeds (when signed in) and local MY_SEEDS.
+  const savedLocalIdx = MY_SEEDS.findIndex((s) => s.id === storyId);
+  if (savedLocalIdx !== -1) {
+    if (me !== "me") await deleteSavedSeed(storyId, me);
+    MY_SEEDS.splice(savedLocalIdx, 1);
+  }
+
+  persistLibrary();
 }
 
 export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {

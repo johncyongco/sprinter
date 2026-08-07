@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Feather, GitFork, MessageSquareHeart, Send, Star } from "lucide-react";
-import { getSavedStories } from "@/services/stories";
+import { ArrowLeft, Feather, GitFork, MessageSquareHeart, Send, Star, Trash2 } from "lucide-react";
+import { getSavedStories, deleteStory } from "@/services/stories";
 import { getContributionsByAuthor } from "@/services/continuations";
 import { getWrittenLibrary, storyById } from "@/services/mock";
 import { useUserStore } from "@/stores/useUserStore";
@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function SavedStoriesPage() {
   const me = useUserStore((s) => s.user?.id) ?? "me";
+  const queryClient = useQueryClient();
 
   const savedQuery = useQuery({
     queryKey: ["saved-stories", me],
@@ -24,6 +25,16 @@ export default function SavedStoriesPage() {
   const writtenQuery = useQuery({
     queryKey: ["written", me],
     queryFn: getWrittenLibrary,
+  });
+
+  const remove = useMutation({
+    mutationFn: (storyId: string) => deleteStory(storyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["home", "feed"] });
+      queryClient.invalidateQueries({ queryKey: ["written"] });
+    },
   });
 
   const stories = savedQuery.data ?? [];
@@ -64,8 +75,21 @@ export default function SavedStoriesPage() {
         ) : stories.length > 0 ? (
           <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
             {stories.map((story, i) => (
-              <div key={story.id} className="mb-5 break-inside-avoid">
+              <div
+                key={story.id}
+                className="group relative mb-5 break-inside-avoid"
+              >
                 <StoryCard story={story} index={i} />
+                <button
+                  type="button"
+                  onClick={() => remove.mutate(story.id)}
+                  disabled={remove.isPending}
+                  aria-label={`Delete ${story.title}`}
+                  title="Delete this story"
+                  className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-background/85 border border-border text-secondary opacity-0 shadow-card backdrop-blur transition group-hover:opacity-100 hover:text-danger disabled:opacity-40"
+                >
+                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                </button>
               </div>
             ))}
           </div>

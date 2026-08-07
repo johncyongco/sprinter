@@ -359,6 +359,25 @@ export async function fetchSavedSeeds(ownerId: string): Promise<Story[] | null> 
   }
 }
 
+export async function deleteSavedSeed(storyId: string, ownerId: string): Promise<void> {
+  if (!isBackendUp() || !isRealUuid(ownerId) || !isRealUuid(storyId)) return;
+  try {
+    await supabase!.from("saved_seeds").delete().eq("id", storyId).eq("owner_id", ownerId);
+  } catch {
+    /* best-effort; local removal still applies */
+  }
+}
+
+export async function deletePublishedStory(storyId: string): Promise<void> {
+  if (!isBackendUp() || !isRealUuid(storyId)) return;
+  try {
+    // continuations cascade via FK; saved_seeds are separate so leave them.
+    await supabase!.from("stories").delete().eq("id", storyId);
+  } catch {
+    /* best-effort */
+  }
+}
+
 export async function insertSavedSeed(story: Story, ownerId: string): Promise<Story | null> {
   if (!isBackendUp() || !isRealUuid(ownerId)) return null;
   try {
