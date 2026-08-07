@@ -165,7 +165,7 @@ export async function fetchStoryBySlug(slug: string): Promise<Story | null> {
 }
 
 export async function fetchStoryById(id: string): Promise<Story | null> {
-  if (!isBackendUp()) return null;
+  if (!isBackendUp() || !isRealUuid(id)) return null;
   try {
     const { data, error } = await supabase!
       .from("stories")
@@ -234,7 +234,7 @@ export function continuationRowToNode(row: ContinuationRow): BranchNode {
 }
 
 export async function fetchContinuationsForStory(storyId: string): Promise<BranchNode[] | null> {
-  if (!isBackendUp()) return null;
+  if (!isBackendUp() || !isRealUuid(storyId)) return null;
   try {
     const { data, error } = await supabase!
       .from("continuations")
@@ -446,7 +446,7 @@ export function critiqueRowToCritique(row: CritiqueRow): Critique {
 }
 
 export async function fetchCritiquesForStory(storyId: string): Promise<Critique[] | null> {
-  if (!isBackendUp()) return null;
+  if (!isBackendUp() || !isRealUuid(storyId)) return null;
   try {
     const { data, error } = await supabase!
       .from("critiques")

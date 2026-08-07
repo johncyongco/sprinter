@@ -102,7 +102,7 @@ alter table public.critiques enable row level security;
 
 drop policy if exists "public read critiques" on public.critiques;
 create policy "public read critiques"
-on public.critiques for select to anon
+on public.critiques for select to anon, authenticated
 using (true);
 
 drop policy if exists "authenticated insert critiques" on public.critiques;
@@ -134,7 +134,7 @@ alter table public.words enable row level security;
 
 drop policy if exists "public read words" on public.words;
 create policy "public read words"
-on public.words for select to anon
+on public.words for select to anon, authenticated
 using (true);
 
 drop policy if exists "authenticated insert words" on public.words;
@@ -155,12 +155,12 @@ alter table public.continuations enable row level security;
 
 drop policy if exists "public read stories" on public.stories;
 create policy "public read stories"
-on public.stories for select to anon
+on public.stories for select to anon, authenticated
 using (true);
 
 drop policy if exists "public read continuations" on public.continuations;
 create policy "public read continuations"
-on public.continuations for select to anon
+on public.continuations for select to anon, authenticated
 using (true);
 
 -- Signed-in users may publish stories and continuations under their uid.
