@@ -290,11 +290,10 @@ export async function getStoryCount(): Promise<number> {
 
 export async function getSavedStories(): Promise<Story[]> {
   const me = useUserStore.getState().user?.id ?? "me";
-  const publishedIds = new Set(STORIES.map((s) => s.id));
   const signedIn = me !== "me";
 
-  // Local-first: render this device's saved seeds instantly (fallback),
-  // then sync the cloud copy in the background so a later load is complete.
+  // Stories the user owns — both saved (unpublished) and published — so
+  // "Stories started" keeps showing their writing even after publishing.
   const local = signedIn
     ? MY_SEEDS.filter((s) => s.seedAuthorId === "me" || s.seedAuthorId === me)
     : MY_SEEDS;
@@ -319,8 +318,18 @@ export async function getSavedStories(): Promise<Story[]> {
     })();
   }
 
-  return local
-    .filter((s) => !publishedIds.has(s.id))
+  // Published stories owned by the user (local + cloud).
+  const publishedLocal = STORIES.filter((s) => s.seedAuthorId === me);
+  const publishedRemote = signedIn
+    ? (await fetchPublishedStories())?.filter((s) => s.seedAuthorId === me) ?? []
+    : [];
+  for (const p of publishedRemote) {
+    if (!publishedLocal.some((s) => s.id === p.id)) publishedLocal.push(p);
+  }
+
+  const seen = new Set<string>();
+  return [...local, ...publishedLocal]
+    .filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true)))
     .map((s) => ({ ...s, contributorIds: [...s.contributorIds] }));
 }
 

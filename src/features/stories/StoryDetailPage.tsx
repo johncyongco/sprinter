@@ -170,6 +170,7 @@ function PublishSeedButton({ story }: { story: Story }) {
     mutationFn: () => publishStory(story.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["stories", "explore"] });
       queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
       queryClient.invalidateQueries({ queryKey: ["story", "slug", story.slug] });
       queryClient.invalidateQueries({ queryKey: ["story", story.id] });
@@ -206,6 +207,7 @@ function EditStoryButton({ story }: { story: Story }) {
     onSuccess: (updated) => {
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["stories", "explore"] });
       queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
       queryClient.invalidateQueries({ queryKey: ["story", "slug", updated.slug] });
       queryClient.invalidateQueries({ queryKey: ["story", story.id] });
@@ -293,6 +295,7 @@ function DeleteStoryButton({ story }: { story: Story }) {
     onSuccess: () => {
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["stories", "explore"] });
       queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
       queryClient.invalidateQueries({ queryKey: ["home", "feed"] });
       queryClient.invalidateQueries({ queryKey: ["written"] });

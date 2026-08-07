@@ -65,7 +65,7 @@ export default function SavedStoriesPage() {
         </div>
       </div>
 
-      <Section title="Saved stories" count={stories.length}>
+      <Section title="Your stories" count={stories.length}>
         {savedQuery.isLoading ? (
           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -96,8 +96,8 @@ export default function SavedStoriesPage() {
         ) : (
           <EmptyState
             icon={<Feather className="h-8 w-8" strokeWidth={1.25} />}
-            title="No saved stories yet"
-            description="Write a story seed or a free piece and it will gather here — quiet and unpublished until you share it with the library."
+            title="No stories yet"
+            description="Write a story seed or a free piece — it will gather here, whether saved or published, so you always have your work nearby."
           />
         )}
       </Section>
