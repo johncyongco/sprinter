@@ -79,7 +79,7 @@ export function isRealUuid(value: string | undefined | null): boolean {
 }
 
 /** Resolves to `null` if the underlying promise doesn't settle in time. */
-async function withTimeout<T>(p: PromiseLike<T>, ms = 3000): Promise<T | null> {
+async function withTimeout<T>(p: PromiseLike<T>, ms = 1200): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([

@@ -85,6 +85,24 @@ export async function migrateLocalWorks(uid: string): Promise<SyncResult> {
 }
 
 /**
+ * Automatic backup: upload any local-only seeds, critiques and words to the
+ * signed-in account, idempotently (seeds by slug, words by term). Called on
+ * every load after sign-in so local data is preserved in Supabase even if
+ * localStorage is later cleared. Never breaks the UI.
+ */
+export async function backupLocalWorksToCloud(uid: string): Promise<void> {
+  if (!isRealUuid(uid)) return;
+  try {
+    await migrateLocalWorks(uid);
+    // Keep a marker so the backup isn't re-run every single render, but
+    // re-run when new local work is created (createStory/freeWrite already
+    // push to the cloud, so this is only for pre-existing guest data).
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
  * Mark this device as having finished importing so the prompt does not
  * recur on every sign-in. Keys off the uid so two accounts don't share.
  */

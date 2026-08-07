@@ -4,6 +4,7 @@ import { MotionConfig } from "framer-motion";
 import { useUserStore } from "@/stores/useUserStore";
 import { useUIStore, type ThemeMode } from "@/stores/useUIStore";
 import { onAuthStateChange, supabaseUserToProfile } from "@/services/auth";
+import { backupLocalWorksToCloud } from "@/services/sync";
 import { SyncPrompt } from "@/components/common/SyncPrompt";
 
 const queryClient = new QueryClient({
@@ -69,6 +70,15 @@ function AuthRoot() {
     });
     return unsub;
   }, [setSessionUser]);
+
+  // Auto-back up local saved seeds/critiques/words to the account when signed
+  // in, so clearing localStorage never loses them. Idempotent and non-blocking.
+  const uid = user?.provider ? user.id : null;
+  useEffect(() => {
+    if (!uid) return;
+    const t = window.setTimeout(() => void backupLocalWorksToCloud(uid), 500);
+    return () => window.clearTimeout(t);
+  }, [uid]);
 
   // A real, authenticated account has a provider; the default guest has none.
   const isAuthenticated = Boolean(user?.provider);

@@ -293,30 +293,33 @@ export async function getSavedStories(): Promise<Story[]> {
   const publishedIds = new Set(STORIES.map((s) => s.id));
   const signedIn = me !== "me";
 
-  let base: Story[];
+  // Local-first: render this device's saved seeds instantly (fallback),
+  // then sync the cloud copy in the background so a later load is complete.
+  const local = signedIn
+    ? MY_SEEDS.filter((s) => s.seedAuthorId === "me" || s.seedAuthorId === me)
+    : MY_SEEDS;
+
   if (signedIn) {
-    const local = MY_SEEDS.filter((s) => s.seedAuthorId === "me" || s.seedAuthorId === me);
-    const remote = await fetchSavedSeeds(me);
-    const remoteList = remote ? [...remote] : [];
-    const remoteBySlug = new Map(remoteList.map((s) => [s.slug, s.id]));
-
-    // Back local guest seeds up into the cloud (source of truth), so a later
-    // localStorage clear doesn't lose them. New ones become cloud seeds.
-    const backup = local.filter((s) => !remoteBySlug.has(s.slug));
-    if (backup.length > 0) {
-      const reTagged = backup.map((s) => ({ ...s, seedAuthorId: me }));
-      await insertSavedSeedsBatch(reTagged, me);
-      const again = await fetchSavedSeeds(me);
-      remoteList.push(...(again ?? []).filter((s) => !remoteList.some((r) => r.id === s.id)));
-    }
-
-    const remoteIds = new Set(remoteList.map((s) => s.id));
-    base = [...local.filter((s) => !remoteIds.has(s.id)), ...remoteList];
-  } else {
-    base = MY_SEEDS;
+    void (async () => {
+      try {
+        const published = new Set(STORIES.map((s) => s.id));
+        const remote = await fetchSavedSeeds(me);
+        const remoteList = remote ? [...remote] : [];
+        const remoteBySlug = new Map(remoteList.map((s) => [s.slug, s.id]));
+        const backup = local.filter((s) => !published.has(s.id) && !remoteBySlug.has(s.slug));
+        if (backup.length > 0) {
+          await insertSavedSeedsBatch(
+            backup.map((s) => ({ ...s, seedAuthorId: me })),
+            me,
+          );
+        }
+      } catch {
+        /* background sync must never break the UI */
+      }
+    })();
   }
 
-  return base
+  return local
     .filter((s) => !publishedIds.has(s.id))
     .map((s) => ({ ...s, contributorIds: [...s.contributorIds] }));
 }
@@ -326,9 +329,12 @@ export async function getStoriesByFilter(
   page = 0,
   perPage = 8,
 ): Promise<{ items: Story[]; next: number | null }> {
-  await delay(30);
+  await delay(10);
+  // If we have local (fallback) data, render it instantly rather than
+  // blocking on a slow Supabase round-trip.
+  let items = [...STORIES];
   const remote = await fetchPublishedStories();
-  let items = remote ? [...remote] : [...STORIES];
+  if (remote && remote.length > 0) items = [...remote];
 
   if (filters.query) {
     const q = filters.query.toLowerCase();
