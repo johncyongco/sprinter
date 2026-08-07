@@ -368,6 +368,36 @@ export async function deleteSavedSeed(storyId: string, ownerId: string): Promise
   }
 }
 
+export async function updateSavedSeed(story: Story, ownerId: string): Promise<Story | null> {
+  if (!isBackendUp() || !isRealUuid(ownerId) || !isRealUuid(story.id)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("saved_seeds")
+      .update({
+        title: story.title,
+        cover: story.cover || null,
+        genres: story.genres,
+        emotion: story.emotion,
+        themes: story.themes,
+        perspective: story.perspective,
+        pacing: story.pacing,
+        status: story.status,
+        body: story.body,
+        words: story.words,
+        reading_minutes: story.readingMinutes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", story.id)
+      .eq("owner_id", ownerId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return savedSeedRowToStory(data as SavedSeedRow, ownerId);
+  } catch {
+    return null;
+  }
+}
+
 export async function deletePublishedStory(storyId: string): Promise<void> {
   if (!isBackendUp() || !isRealUuid(storyId)) return;
   try {
@@ -375,6 +405,36 @@ export async function deletePublishedStory(storyId: string): Promise<void> {
     await supabase!.from("stories").delete().eq("id", storyId);
   } catch {
     /* best-effort */
+  }
+}
+
+export async function updatePublishedStory(story: Story): Promise<Story | null> {
+  if (!isBackendUp() || !isRealUuid(story.id) || !isRealUuid(story.seedAuthorId)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("stories")
+      .update({
+        title: story.title,
+        cover: story.cover || null,
+        genres: story.genres,
+        emotion: story.emotion,
+        themes: story.themes,
+        perspective: story.perspective,
+        pacing: story.pacing,
+        status: story.status,
+        body: story.body,
+        words: story.words,
+        reading_minutes: story.readingMinutes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", story.id)
+      .eq("seed_author_id", story.seedAuthorId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return storyRowToStory(data as StoryRow);
+  } catch {
+    return null;
   }
 }
 

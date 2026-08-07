@@ -8,6 +8,8 @@ import {
   insertSavedSeed,
   deleteSavedSeed,
   deletePublishedStory,
+  updatePublishedStory,
+  updateSavedSeed,
 } from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
 import type {
@@ -192,6 +194,46 @@ export async function deleteStory(storyId: string): Promise<void> {
   }
 
   persistLibrary();
+}
+
+/**
+ * Edit an owned story (saved or published). The change mirrors to local
+ * storage AND to Supabase (saved_seeds and/or stories) when signed in.
+ */
+export async function updateStory(
+  storyId: string,
+  patch: { title: string; body: string },
+): Promise<Story> {
+  const me = useUserStore.getState().user?.id ?? "me";
+  const title = patch.title.trim();
+  const body = patch.body.trim();
+  const words = body.replace(/\s+/g, " ").split(" ").filter(Boolean).length;
+
+  const savedIdx = MY_SEEDS.findIndex((s) => s.id === storyId);
+  const publishedIdx = STORIES.findIndex((s) => s.id === storyId);
+  const current = (savedIdx !== -1 ? MY_SEEDS[savedIdx] : undefined) ??
+    (publishedIdx !== -1 ? STORIES[publishedIdx] : undefined);
+  if (!current) throw new Error("Story not found");
+
+  const updated: Story = {
+    ...current,
+    title,
+    body,
+    words,
+    updatedAt: new Date().toISOString().slice(0, 10),
+    excerpt: body.split(/\s+/).slice(0, 42).join(" ") + "…",
+  };
+
+  if (savedIdx !== -1) MY_SEEDS[savedIdx] = updated;
+  if (publishedIdx !== -1) STORIES[publishedIdx] = updated;
+
+  if (me !== "me") {
+    if (savedIdx !== -1) await updateSavedSeed(updated, me);
+    if (publishedIdx !== -1) await updatePublishedStory(updated);
+  }
+
+  persistLibrary();
+  return updated;
 }
 
 export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {

@@ -11,8 +11,10 @@ import {
   ArrowLeft,
   Sparkles,
   Send,
+  Pencil,
+  Loader2,
 } from "lucide-react";
-import { getStoryBySlug, getStories, publishStory } from "@/services/stories";
+import { getStoryBySlug, getStories, publishStory, updateStory } from "@/services/stories";
 import { getBranches } from "@/services/continuations";
 import { getCritiques, getCritiqueStats, CRITIQUE_DIMENSIONS } from "@/services/critiques";
 import { wordById } from "@/services/mock";
@@ -28,6 +30,8 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Avatar } from "@/components/ui/Avatar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Input, Textarea } from "@/components/ui/Input";
 import { Markdown } from "@/lib/markdown";
 import { useUIStore } from "@/stores/useUIStore";
 import { useUserStore } from "@/stores/useUserStore";
@@ -189,6 +193,92 @@ function PublishSeedButton({ story }: { story: Story }) {
   );
 }
 
+/* ------------------------- edit story button ------------------------- */
+
+function EditStoryButton({ story }: { story: Story }) {
+  const me = useUserStore((s) => s.user?.id) ?? "me";
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(story.title);
+  const [body, setBody] = useState(story.body);
+
+  const save = useMutation({
+    mutationFn: () => updateStory(story.id, { title, body }),
+    onSuccess: (updated) => {
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
+      queryClient.invalidateQueries({ queryKey: ["story", "slug", updated.slug] });
+      queryClient.invalidateQueries({ queryKey: ["story", story.id] });
+      queryClient.invalidateQueries({ queryKey: ["home", "feed"] });
+    },
+  });
+
+  if (story.seedAuthorId !== me) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setTitle(story.title);
+          setBody(story.body);
+          setOpen(true);
+        }}
+        aria-label="Edit story"
+        title="Edit story"
+        className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-secondary transition hover:text-primary"
+      >
+        <Pencil className="h-4 w-4" strokeWidth={1.75} />
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <div className="space-y-6 p-8 sm:p-10">
+          <p className="font-display text-3xl tracking-[-0.03em]">Edit your story</p>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-title" className="text-sm font-semibold">Title</label>
+              <Input
+                id="edit-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="edit-body" className="text-sm font-semibold">Story</label>
+              <Textarea
+                id="edit-body"
+                rows={16}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Your story…"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              onClick={() => save.mutate()}
+              disabled={!title.trim() || save.isPending}
+              className="flex-1"
+            >
+              {save.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                </>
+              ) : (
+                <>Save changes</>
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1">
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 /* ------------------------- reading pane ------------------------- */
 
 function ReadingPane({
@@ -288,6 +378,7 @@ function ReadingPane({
         </div>
         <div className="flex items-center gap-2">
           <PublishSeedButton story={story} />
+          <EditStoryButton story={story} />
           <button
             type="button"
             onClick={() => setBookmarked((b) => !b)}
@@ -546,6 +637,7 @@ function MobileView({
           Critique
         </Button>
         <PublishSeedButton story={story} />
+        <EditStoryButton story={story} />
       </div>
 
       <Tabs
