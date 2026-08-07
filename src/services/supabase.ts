@@ -51,6 +51,13 @@ function isBackendUp(): boolean {
   return supabase !== null;
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isRealUuid(value: string | undefined | null): boolean {
+  return typeof value === "string" && UUID_RE.test(value);
+}
+
 function asStringArray(v: string[] | null | undefined): string[] {
   return Array.isArray(v) ? v : [];
 }
@@ -155,6 +162,7 @@ export async function fetchStoryById(id: string): Promise<Story | null> {
 
 export async function insertPublishedStory(story: Story): Promise<Story | null> {
   if (!isBackendUp()) return null;
+  if (!isRealUuid(story.seedAuthorId)) return null;
   try {
     const { data, error } = await supabase!
       .from("stories")
@@ -237,6 +245,7 @@ export async function insertContinuation(input: {
   beautifulWordIds: string[];
 }): Promise<BranchNode | null> {
   if (!isBackendUp()) return null;
+  if (!isRealUuid(input.authorId)) return null;
   try {
     const { data, error } = await supabase!
       .from("continuations")
