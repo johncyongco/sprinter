@@ -70,12 +70,7 @@ export default function AnthologyDetailPage() {
   const topCritiques = critiquesQuery.data ?? [];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-14"
-    >
+    <div className="space-y-14">
       <Link
         to="/anthologies"
         className="inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:text-primary transition-colors"
@@ -163,7 +158,7 @@ export default function AnthologyDetailPage() {
           </div>
         </section>
       )}
-    </motion.div>
+    </div>
   );
 }
 

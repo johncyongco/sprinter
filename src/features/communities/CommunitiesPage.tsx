@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { ArrowRight, Users, Tags } from "lucide-react";
 import { getCommunities } from "@/services/communities";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -14,12 +13,7 @@ export default function CommunitiesPage() {
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
+    <div className="space-y-12">
       {isLoading ? (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -28,14 +22,8 @@ export default function CommunitiesPage() {
         </div>
       ) : (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {communities?.map((community, i) => (
-            <motion.div
-              key={community.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-            >
+          {communities?.map((community) => (
+            <div key={community.id}>
               <Link
                 to={`/communities/${community.id}`}
                 className="group flex h-full flex-col overflow-hidden rounded-[34px] border border-border/70 bg-card shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-hover"
@@ -79,10 +67,10 @@ export default function CommunitiesPage() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

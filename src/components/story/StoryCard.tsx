@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, GitFork, Clock } from "lucide-react";
-import { motion } from "framer-motion";
 import type { Story } from "@/types";
 import { authorById } from "@/services/mock";
 import { cn } from "@/lib/cn";
@@ -8,7 +7,6 @@ import { cn } from "@/lib/cn";
 export function StoryCard({
   story,
   className,
-  index = 0,
 }: {
   story: Story;
   className?: string;
@@ -17,11 +15,7 @@ export function StoryCard({
   const seedAuthor = authorById(story.seedAuthorId);
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.4), ease: [0.22, 1, 0.36, 1] }}
+    <article
       className={cn(
         "group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover cursor-pointer",
         className,
@@ -93,6 +87,6 @@ export function StoryCard({
           </div>
         </div>
       </Link>
-    </motion.article>
+    </article>
   );
 }

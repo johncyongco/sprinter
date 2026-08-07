@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -19,12 +18,7 @@ export default function ExploreSectionPage() {
   if (!valid) return <Navigate to="/explore" replace />;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-10"
-    >
+    <div className="space-y-10">
       <div className="space-y-8">
         <Link
           to="/explore"
@@ -40,6 +34,6 @@ export default function ExploreSectionPage() {
       {section === "communities" && <CommunitiesView />}
       {section === "thoughts" && <ThoughtsView />}
       {section === "motifs" && <MotifsThemesView />}
-    </motion.div>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Timer, Users, Trophy, Feather } from "lucide-react";
 import { getChallenges, getLeaderboard, getChallengeStory } from "@/services/challenges";
 import type { Challenge, ChallengeKind } from "@/types";
@@ -30,12 +29,7 @@ export default function ChallengesPage() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
+    <div className="space-y-12">
       <div className="flex flex-wrap gap-x-7 gap-y-2 border-b border-border">
         {KINDS.map((k) => {
           const active = kind === k;
@@ -96,12 +90,8 @@ export default function ChallengesPage() {
           />
           <div className="rounded-[34px] border border-border bg-surface p-8 sm:p-10 space-y-4">
             {leaderboard.map((row, i) => (
-              <motion.div
+              <div
                 key={row.penName}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.06 }}
                 className="flex items-center gap-6 rounded-3xl border border-border bg-card p-6"
               >
                 <span
@@ -124,18 +114,17 @@ export default function ChallengesPage() {
                     <Trophy className="h-3.5 w-3.5 text-accent" /> Courage {row.scores.courage}
                   </span>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>
       )}
-    </motion.div>
+    </div>
   );
 }
 
 function ChallengeCard({
   challenge,
-  index,
 }: {
   challenge: Challenge;
   index: number;
@@ -144,11 +133,7 @@ function ChallengeCard({
   const featured = getChallengeStory(challenge);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+    <div
       className="flex flex-col justify-between gap-8 rounded-[28px] border border-border/70 bg-card p-8 shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-hover"
     >
       <div className="space-y-5">
@@ -199,6 +184,6 @@ function ChallengeCard({
           </Link>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

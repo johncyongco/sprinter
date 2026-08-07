@@ -85,7 +85,8 @@ export const ContributionPanel = forwardRef<ContributionPanelHandle, {
       setReferences(draft.references ?? []);
     }, [story.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const persist = () =>
+    const persist = () => {
+      if (!body.trim() && !title.trim() && wordIds.length === 0 && references.length === 0) return;
       draftStore.saveDraft({
         storyId: story.id,
         parentId,
@@ -96,6 +97,7 @@ export const ContributionPanel = forwardRef<ContributionPanelHandle, {
         references,
         savedAt: new Date().toISOString(),
       });
+    };
 
     useAutosave(body, persist, 5000);
 

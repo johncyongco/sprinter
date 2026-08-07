@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Feather, GitFork, Clock, ArrowRight } from "lucide-react";
 import { getStories } from "@/services/stories";
 import { getTrendingWords } from "@/services/words";
@@ -103,7 +102,6 @@ export function StoryFeedSidebar({ activeSlug }: { activeSlug?: string }) {
 
 function CompactStoryCard({
   story,
-  index,
   active,
 }: {
   story: Story;
@@ -113,11 +111,7 @@ function CompactStoryCard({
   const author = authorById(story.seedAuthorId);
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: Math.min(index * 0.03, 0.3), ease: [0.22, 1, 0.36, 1] }}
-    >
+    <article>
       <Link
         to={`/stories/${story.slug}`}
         className={cn(
@@ -170,6 +164,6 @@ function CompactStoryCard({
           </div>
         </div>
       </Link>
-    </motion.article>
+    </article>
   );
 }

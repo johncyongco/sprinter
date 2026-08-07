@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import type { Critique } from "@/types";
 import { authorById } from "@/services/mock";
@@ -8,7 +7,6 @@ import { cn } from "@/lib/cn";
 
 export function CritiqueCard({
   critique,
-  index = 0,
 }: {
   critique: Critique;
   index?: number;
@@ -19,11 +17,7 @@ export function CritiqueCard({
     CRITIQUE_DIMENSIONS.length;
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+    <article
       className="rounded-[24px] border border-border bg-card p-8 space-y-6"
     >
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -55,11 +49,8 @@ export function CritiqueCard({
               <span className="font-semibold">{critique.scores[d.key]}</span>
             </div>
             <div className="h-1 w-full overflow-hidden rounded-full bg-border/60">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: `${critique.scores[d.key] * 10}%` }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              <div
+                style={{ width: `${critique.scores[d.key] * 10}%` }}
                 className={cn("h-full rounded-full", scoreTone(critique.scores[d.key]))}
               />
             </div>
@@ -68,7 +59,7 @@ export function CritiqueCard({
       </div>
 
       <p className="text-[15px] leading-relaxed text-primary/90">{critique.reflection}</p>
-    </motion.article>
+    </article>
   );
 }
 

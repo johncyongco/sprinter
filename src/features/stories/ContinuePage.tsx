@@ -145,12 +145,7 @@ export default function ContinuePage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-10"
-    >
+    <div className="space-y-10">
       <div className="flex items-center gap-4">
         <Link
           to={`/stories/${story.slug}`}
@@ -347,6 +342,6 @@ export default function ContinuePage() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

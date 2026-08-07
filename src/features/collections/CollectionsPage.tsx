@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import { getCollections, getCollectionStories, getCurator } from "@/services/communities";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -28,12 +27,7 @@ export default function CollectionsPage() {
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
+    <div className="space-y-12">
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -42,15 +36,11 @@ export default function CollectionsPage() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {collections?.map((collection, i) => (
-            <motion.button
+          {collections?.map((collection) => (
+            <button
               key={collection.id}
               type="button"
               onClick={() => setOpen(collection)}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
               className="group relative overflow-hidden rounded-[34px] border border-border/70 bg-card text-left shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-hover"
             >
               <div className="relative h-44 overflow-hidden">
@@ -77,7 +67,7 @@ export default function CollectionsPage() {
                   {collection.storyIds.length} stories · curated with care
                 </p>
               </div>
-            </motion.button>
+            </button>
           ))}
         </div>
       )}
@@ -103,6 +93,6 @@ export default function CollectionsPage() {
           </div>
         )}
       </Modal>
-    </motion.div>
+    </div>
   );
 }

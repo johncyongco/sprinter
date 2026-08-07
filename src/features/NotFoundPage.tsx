@@ -1,13 +1,9 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { PenLine } from "lucide-react";
 
 export default function NotFoundPage() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    <div
       className="min-h-[60vh] flex flex-col items-center justify-center gap-6 text-center"
     >
       <PenLine className="h-10 w-10 text-gold" strokeWidth={1.25} />
@@ -22,6 +18,6 @@ export default function NotFoundPage() {
       >
         Return to the library
       </Link>
-    </motion.div>
+    </div>
   );
 }

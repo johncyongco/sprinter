@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { globalSearch } from "@/services/search";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -32,12 +31,7 @@ export default function SearchPage() {
     : 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-10"
-    >
+    <div className="space-y-10">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="relative">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary/60" />
@@ -160,7 +154,7 @@ export default function SearchPage() {
           />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

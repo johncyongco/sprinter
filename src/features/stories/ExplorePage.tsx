@@ -152,29 +152,20 @@ export default function ExplorePage() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-10"
-    >
+    <div className="space-y-10">
       <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
         {categories.map((category, i) => (
           <CategoryCard key={category.id} category={category} index={i} />
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-function CategoryCard({ category, index }: { category: CategoryDef; index: number }) {
+function CategoryCard({ category }: { category: CategoryDef; index: number }) {
   const Icon = category.icon;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45, delay: Math.min(index * 0.06, 0.35), ease: [0.22, 1, 0.36, 1] }}
+    <div
       className="mb-5 break-inside-avoid"
     >
       <Link
@@ -205,7 +196,7 @@ function CategoryCard({ category, index }: { category: CategoryDef; index: numbe
           </span>
         )}
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
@@ -425,14 +416,9 @@ export function WordsView() {
   );
 }
 
-function WordCard({ word, index }: { word: BeautifulWord; index: number }) {
+function WordCard({ word }: { word: BeautifulWord; index: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45, delay: Math.min(index * 0.05, 0.4), ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div>
       <Link
         to={`/words/${word.id}`}
         className="group flex h-full flex-col justify-between rounded-[28px] border border-border/70 bg-card p-7 space-y-6 shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover"
@@ -475,7 +461,7 @@ function WordCard({ word, index }: { word: BeautifulWord; index: number }) {
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
@@ -509,13 +495,9 @@ export function AnthologiesView() {
   );
 }
 
-function AnthologyCard({ anthology, index }: { anthology: Anthology; index: number }) {
+function AnthologyCard({ anthology }: { anthology: Anthology; index: number }) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+    <article
       className="group overflow-hidden rounded-[34px] border border-border/70 bg-card shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-hover"
     >
       <div className="relative h-48 overflow-hidden">
@@ -545,7 +527,7 @@ function AnthologyCard({ anthology, index }: { anthology: Anthology; index: numb
           </Link>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
 
@@ -579,14 +561,9 @@ export function CommunitiesView() {
   );
 }
 
-function CommunityCard({ community, index }: { community: Community; index: number }) {
+function CommunityCard({ community }: { community: Community; index: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div>
       <Link
         to={`/communities/${community.id}`}
         className="group flex h-full flex-col overflow-hidden rounded-[34px] border border-border/70 bg-card shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-hover"
@@ -630,7 +607,7 @@ function CommunityCard({ community, index }: { community: Community; index: numb
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
@@ -669,14 +646,10 @@ export function ThoughtsView() {
   );
 }
 
-function ThoughtCard({ thought, index }: { thought: Thought; index: number }) {
+function ThoughtCard({ thought }: { thought: Thought; index: number }) {
   const author = authorById(thought.authorId);
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
+    <div
       className="flex gap-4 rounded-3xl border-l-2 border-gold/50 bg-card p-6"
     >
       <Avatar text={author?.avatar ?? "?"} size="sm" className="mt-1" />
@@ -692,7 +665,7 @@ function ThoughtCard({ thought, index }: { thought: Thought; index: number }) {
         )}
         <p className="text-[15px] leading-relaxed text-primary/90">{thought.content}</p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -704,13 +677,9 @@ export function MotifsThemesView() {
         The strands that tie Sprinter's stories together. Choose a theme to surf every story that carries it.
       </p>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {THEMES.map((theme, i) => (
-          <motion.div
+        {THEMES.map((theme) => (
+          <div
             key={theme}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.45, delay: Math.min(i * 0.05, 0.4), ease: [0.22, 1, 0.36, 1] }}
           >
             <button
               type="button"
@@ -724,7 +693,7 @@ export function MotifsThemesView() {
                 <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
               </span>
             </button>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import type { Story } from "@/types";
 import { authorById, wordById } from "@/services/mock";
 import { WordTag } from "@/components/words/WordTag";
@@ -12,12 +11,7 @@ export function StoryView({
   onWordSelect?: (wordId: string) => void;
 }) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-8"
-    >
+    <article className="space-y-8">
       <Markdown text={story.body} className="prose-story" />
       <div className="flex flex-wrap items-center gap-2 pt-2">
         {story.beautifulWords.map((bw) => {
@@ -38,6 +32,6 @@ export function StoryView({
         Seeded by {authorById(story.seedAuthorId)?.penName ?? "a quiet author"} ·{" "}
         {story.createdAt} · waiting for its next sentence.
       </p>
-    </motion.article>
+    </article>
   );
 }

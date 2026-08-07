@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Feather, Search, BookOpen } from "lucide-react";
 import { getVault } from "@/services/words";
@@ -18,12 +17,7 @@ export default function WordVaultPage() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
+    <div className="space-y-12">
       <div className="flex flex-wrap items-end justify-between gap-8">
         <div className="relative w-full lg:w-80">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary/70" />
@@ -52,14 +46,8 @@ export default function WordVaultPage() {
         />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((w, i) => (
-            <motion.div
-              key={w.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.45, delay: Math.min(i * 0.05, 0.4), ease: [0.22, 1, 0.36, 1] }}
-            >
+          {filtered.map((w) => (
+            <div key={w.id}>
               <Link
                 to={`/words/${w.id}`}
                 className="group flex h-full flex-col justify-between rounded-[28px] border border-border/70 bg-card p-7 space-y-6 shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover"
@@ -102,10 +90,10 @@ export default function WordVaultPage() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

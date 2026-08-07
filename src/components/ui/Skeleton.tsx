@@ -5,7 +5,7 @@ export function Skeleton({ className }: { className?: string }) {
     <div
       aria-hidden="true"
       className={cn(
-        "animate-pulse rounded-2xl bg-border/60 dark:bg-border/40",
+        "rounded-2xl bg-border/60 dark:bg-border/40",
         className,
       )}
     />

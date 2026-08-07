@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Download, BookOpen } from "lucide-react";
 import { getAnthologies } from "@/services/anthologies";
@@ -16,12 +15,7 @@ export default function AnthologiesPage() {
   const { data: stories } = useQuery({ queryKey: ["stories"], queryFn: getStories });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
+    <div className="space-y-12">
       {isLoading ? (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -30,17 +24,13 @@ export default function AnthologiesPage() {
         </div>
       ) : (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {anthologies?.map((anthology, i) => {
+          {anthologies?.map((anthology) => {
             const anthologyStories = (stories ?? []).filter((s) =>
               anthology.storyIds.includes(s.id),
             );
             return (
-              <motion.article
+              <article
                 key={anthology.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 className="group overflow-hidden rounded-[34px] border border-border/70 bg-card shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-hover"
               >
                 <div className="relative h-64 overflow-hidden">
@@ -95,11 +85,11 @@ export default function AnthologiesPage() {
                     </button>
                   </div>
                 </div>
-              </motion.article>
+              </article>
             );
           })}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

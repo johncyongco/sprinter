@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { ArrowLeft, Users, MessageSquare, Trophy, BookOpen } from "lucide-react";
 import { getCommunity, getCommunityMembers } from "@/services/communities";
 import { getChallenges } from "@/services/challenges";
@@ -58,12 +57,7 @@ export default function CommunityDetailPage() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-14"
-    >
+    <div className="space-y-14">
       <Link
         to="/communities"
         className="inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:text-primary transition-colors"
@@ -179,6 +173,6 @@ export default function CommunityDetailPage() {
           </div>
         </aside>
       </section>
-    </motion.div>
+    </div>
   );
 }

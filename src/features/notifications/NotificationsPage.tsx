@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { GitFork, MessageSquareHeart, Sparkles, Timer, BookOpen, Hand, CheckCheck } from "lucide-react";
 import { getNotifications, markAllRead, markRead, notificationMeta } from "@/services/notifications";
 import type { NotificationKind } from "@/types";
@@ -43,12 +42,7 @@ export default function NotificationsPage() {
   const unread = notifications?.filter((n) => !n.read).length ?? 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="max-w-3xl mx-auto space-y-10"
-    >
+    <div className="max-w-3xl mx-auto space-y-10">
       <div className="flex flex-wrap items-center justify-between gap-6">
         <button
           type="button"
@@ -68,16 +62,12 @@ export default function NotificationsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {notifications?.map((n, i) => {
+          {notifications?.map((n) => {
             const { actor, story } = notificationMeta(n);
             const meta = KIND_META[n.kind];
             return (
-              <motion.div
+              <div
                 key={n.id}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
                 className={cn(
                   "flex items-center gap-5 rounded-3xl border p-6 transition-colors",
                   n.read ? "border-border bg-card" : "border-accent/30 bg-accent/5",
@@ -109,11 +99,11 @@ export default function NotificationsPage() {
                   </Link>
                 )}
                 {!n.read && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold" aria-label="Unread" />}
-              </motion.div>
+              </div>
             );
           })}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

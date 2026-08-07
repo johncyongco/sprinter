@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Feather, Timer, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getHomeFeed } from "@/services/stories";
@@ -22,12 +21,7 @@ export default function HomePage() {
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-16 max-sm:space-y-12"
-    >
+    <div className="space-y-16 max-sm:space-y-12">
       <Hero />
 
       <section className="border-t border-border pt-12">
@@ -94,7 +88,7 @@ export default function HomePage() {
         <WeeklyPromptCard />
         <RelayCard />
       </section>
-    </motion.div>
+    </div>
   );
 }
 
@@ -143,13 +137,9 @@ function TrendingWordsSection({ words }: { words: BeautifulWord[] | undefined })
         Words the library is leaning into this week — carry one into your next branch.
       </p>
       <div className="mt-5 flex flex-wrap gap-2.5">
-        {words?.map((w, i) => (
-          <motion.div
+        {words?.map((w) => (
+          <div
             key={w.id}
-            initial={{ opacity: 0, scale: 0.96 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
           >
             <Link
               to={`/words/${w.id}`}
@@ -158,7 +148,7 @@ function TrendingWordsSection({ words }: { words: BeautifulWord[] | undefined })
               <Feather className="h-3.5 w-3.5 text-gold" strokeWidth={1.75} />
               {w.term}
             </Link>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>
@@ -168,11 +158,7 @@ function TrendingWordsSection({ words }: { words: BeautifulWord[] | undefined })
 function WeeklyPromptCard() {
   if (!WEEKLY_PROMPT.title) return null;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    <div
       className="group relative overflow-hidden rounded-[28px] border border-border bg-card p-7 sm:p-9 flex flex-col justify-between gap-8 min-h-[260px] sm:min-h-[320px] transition-shadow duration-500 hover:shadow-hover"
     >
       <div className="space-y-4">
@@ -195,7 +181,7 @@ function WeeklyPromptCard() {
           Join the prompt <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -203,11 +189,7 @@ function RelayCard() {
   if (!RELAY.storyId) return null;
   const current = authorById(RELAY.current);
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+    <div
       className="relative overflow-hidden rounded-[28px] border border-primary bg-primary p-7 sm:p-9 flex flex-col justify-between gap-8 min-h-[260px] sm:min-h-[320px] text-background"
     >
       <div className="space-y-4">
@@ -253,6 +235,6 @@ function RelayCard() {
           Read the relay <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-    </motion.div>
+    </div>
   );
 }

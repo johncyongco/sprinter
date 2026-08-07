@@ -10,6 +10,6 @@ export const supabase: SupabaseClient | null =
 
 export const isBackendConnected = supabase !== null;
 
-export function delay(ms = 240): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export function delay(_ms = 240): Promise<void> {
+  return Promise.resolve();
 }

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import type { BeautifulWord } from "@/types";
 import type { WordRelation } from "@/services/words";
 import { cn } from "@/lib/cn";
@@ -29,24 +28,18 @@ export function RelationshipGraph({
         const y = center + Math.sin(angle) * radius;
         return (
           <g key={rel.word.id}>
-            <motion.line
+            <line
               x1={center}
               y1={center}
               x2={x}
               y2={y}
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 + i * 0.05, ease: "easeInOut" }}
               className="stroke-border"
               strokeWidth={1 + rel.degree * 0.4}
             />
-            <motion.circle
+            <circle
               cx={x}
               cy={y}
               r={20 + Math.min(rel.sharedStories * 4, 12)}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.15 + i * 0.05, type: "spring", stiffness: 120, damping: 14 }}
               className="fill-card stroke-accent/50"
               strokeWidth={1.5}
             />
@@ -54,39 +47,30 @@ export function RelationshipGraph({
         );
       })}
 
-      <motion.circle
+      <circle
         cx={center}
         cy={center}
         r={56}
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5, type: "spring", stiffness: 100, damping: 12 }}
         className="fill-primary"
       />
 
-      <motion.text
+      <text
         x={center}
         y={center + 4}
         textAnchor="middle"
         className="fill-background font-display"
         style={{ fontSize: 17 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
       >
         {word.term}
-      </motion.text>
+      </text>
 
       {relations.map((rel, i) => {
         const angle = (i / relations.length) * Math.PI * 2 - Math.PI / 2;
         const x = center + Math.cos(angle) * radius;
         const y = center + Math.sin(angle) * radius;
         return (
-          <motion.g
+          <g
             key={rel.word.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 + i * 0.05 }}
           >
             <foreignObject
               x={x - 44}
@@ -106,7 +90,7 @@ export function RelationshipGraph({
                 </Link>
               </div>
             </foreignObject>
-          </motion.g>
+          </g>
         );
       })}
     </svg>

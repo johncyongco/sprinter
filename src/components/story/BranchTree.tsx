@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { GitBranch, Sparkles } from "lucide-react";
 import type { BranchNode, ContributionType, Story } from "@/types";
 import { authorById, wordById } from "@/services/mock";
@@ -72,12 +72,7 @@ export function BranchTree({
   const seedAuthor = authorById(story.seedAuthorId);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-8"
-    >
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <p className="uppercase tracking-[0.25em] text-xs text-secondary font-semibold flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-gold" /> Branch Tree
@@ -109,7 +104,7 @@ export function BranchTree({
       <Modal open={Boolean(selected)} onClose={() => setSelected(null)} labelledBy="node-title">
         {selected && <NodeDetail node={selected} />}
       </Modal>
-    </motion.div>
+    </div>
   );
 }
 
@@ -141,12 +136,9 @@ function BranchList({
 }) {
   return (
     <div className="relative">
-      {tree.map((tn, i) => (
-        <motion.div
+      {tree.map((tn) => (
+        <div
           key={tn.node.id}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: Math.min(0.1 * (i + 1), 0.5), ease: [0.22, 1, 0.36, 1] }}
           className="relative"
         >
           <div
@@ -185,7 +177,7 @@ function BranchList({
               <BranchList tree={tn.children} depth={depth + 1} onSelect={onSelect} />
             </div>
           )}
-        </motion.div>
+        </div>
       ))}
     </div>
   );
@@ -226,13 +218,9 @@ function NodeDetail({ node }: { node: BranchNode }) {
         </div>
       )}
       <AnimatePresence>
-        <motion.blockquote
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="border-l-2 border-gold/50 pl-5 font-display italic text-secondary"
-        >
+        <blockquote className="border-l-2 border-gold/50 pl-5 font-display italic text-secondary">
           {author?.favoriteLine ?? ""}
-        </motion.blockquote>
+        </blockquote>
       </AnimatePresence>
     </div>
   );

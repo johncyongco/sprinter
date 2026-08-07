@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { GitFork, BookOpen, Users, Clock } from "lucide-react";
 import type { Story } from "@/types";
 import { getGenomeSummary } from "@/services/stories";
@@ -15,10 +14,7 @@ export function GenomeSidebar({ story }: { story: Story }) {
   ];
 
   return (
-    <motion.aside
-      initial={{ opacity: 0, x: 16 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+    <aside
       className="w-[300px] shrink-0 rounded-[30px] border border-border bg-white/70 dark:bg-card/70 backdrop-blur-md p-8 space-y-8 max-xl:w-[260px] max-lg:w-full"
     >
       <div>
@@ -85,6 +81,6 @@ export function GenomeSidebar({ story }: { story: Story }) {
           <p className="font-display text-xl capitalize">{genome.pacing}</p>
         </div>
       </div>
-    </motion.aside>
+    </aside>
   );
 }

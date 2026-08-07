@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight, Bookmark, Download, Users } from "lucide-react";
 import type { Story } from "@/types";
 import { authorById } from "@/services/mock";
@@ -22,12 +21,7 @@ export function StoryHeader({
     .slice(0, 3) as string[];
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-8"
-    >
+    <header className="space-y-8">
       <div className="space-y-5">
         <div className="flex flex-wrap gap-2">
           {story.genres.map((g) => (
@@ -89,6 +83,6 @@ export function StoryHeader({
       </div>
 
       <div className="h-px bg-border/70" />
-    </motion.header>
+    </header>
   );
 }

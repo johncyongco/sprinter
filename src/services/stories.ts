@@ -178,8 +178,7 @@ export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {
 }
 
 export async function getStoryCount(): Promise<number> {
-  await delay(120);
-  return STORIES.length;
+  return STORIES.length + MY_SEEDS.length;
 }
 
 export async function getStoriesByFilter(
@@ -187,8 +186,7 @@ export async function getStoriesByFilter(
   page = 0,
   perPage = 8,
 ): Promise<{ items: Story[]; next: number | null }> {
-  await delay(260);
-  let items = [...STORIES];
+  let items = [...MY_SEEDS, ...STORIES];
 
   if (filters.query) {
     const q = filters.query.toLowerCase();

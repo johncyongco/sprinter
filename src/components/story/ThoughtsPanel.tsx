@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { MessageSquareHeart, Send, X } from "lucide-react";
 import { getThoughts, addThought } from "@/services/thoughts";
 import { authorById } from "@/services/mock";
@@ -60,15 +59,11 @@ export function ThoughtsPanel({
             ))}
           </div>
         ) : thoughts?.length ? (
-          thoughts.map((t, i) => {
+          thoughts.map((t) => {
             const author = authorById(t.authorId);
             return (
-              <motion.div
+              <div
                 key={t.id}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.3) }}
                 className="flex gap-4 rounded-3xl border-l-2 border-gold/50 bg-card p-6"
               >
                 <Avatar text={author?.avatar ?? "?"} size="sm" className="mt-1" />
@@ -84,7 +79,7 @@ export function ThoughtsPanel({
                   )}
                   <p className="text-[15px] leading-relaxed text-primary/90">{t.content}</p>
                 </div>
-              </motion.div>
+              </div>
             );
           })
         ) : (

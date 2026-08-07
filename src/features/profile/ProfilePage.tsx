@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Feather, MessageSquareHeart, GitFork, FileText, Award, Bookmark } from "lucide-react";
 import { getProfile } from "@/services/users";
 import { getStories } from "@/services/stories";
@@ -54,12 +53,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-12"
-    >
+    <div className="space-y-12">
       <header>
         <div className="flex flex-col md:flex-row gap-8 md:gap-14">
           <Avatar text={profile.avatar} size="lg" className="ring-4 ring-background" />
@@ -144,21 +138,22 @@ export default function ProfilePage() {
           <ProfileSettings />
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 function DraftsTab({ drafts, slugOf }: { drafts: Draft[]; slugOf: (storyId: string) => string }) {
+  const visible = drafts.filter((d) => d.body.trim().length > 0 || d.title.trim().length > 0);
   return (
     <div className="space-y-4">
-      {drafts.length === 0 ? (
+      {visible.length === 0 ? (
         <EmptyState
           icon={<Feather className="h-8 w-8" strokeWidth={1.25} />}
           title="No drafts waiting"
           description="Your drafts autosave here every five seconds — even offline. They'll be waiting when you return."
         />
       ) : (
-        drafts.map((d) => (
+        visible.map((d) => (
           <div key={d.storyId} className="rounded-3xl border border-border bg-card p-6 sm:p-7 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-secondary">
@@ -237,13 +232,9 @@ function AchievementsTab({ stats }: { stats: Author["stats"] }) {
       <p className="text-sm text-secondary">
         {earnedCount} of {achievements.length} earned
       </p>
-      {achievements.map((a, i) => (
-        <motion.div
+      {achievements.map((a) => (
+        <div
           key={a.title}
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: i * 0.05 }}
           className={`flex flex-wrap items-center gap-5 rounded-3xl border p-6 ${a.earned ? "border-gold/30 bg-gold/5" : "border-border bg-card opacity-70"}`}
         >
           <Award className={`h-5 w-5 shrink-0 ${a.earned ? "text-gold" : "text-secondary"}`} strokeWidth={1.5} />
@@ -254,7 +245,7 @@ function AchievementsTab({ stats }: { stats: Author["stats"] }) {
           <span className={`text-[13px] font-semibold ${a.earned ? "text-gold" : "text-secondary"}`}>
             {a.earned ? "Earned" : "Locked"}
           </span>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

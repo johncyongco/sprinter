@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Users, GitFork, BookOpen, Clock } from "lucide-react";
 import type { Story } from "@/types";
 import { getGenomeSummary } from "@/services/stories";
@@ -16,12 +15,7 @@ export function GenomePanel({ story }: { story: Story }) {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 16 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col gap-8 p-5 lg:p-6"
-    >
+    <div className="flex flex-col gap-8 p-5 lg:p-6">
       <div>
         <p className="uppercase tracking-[0.25em] text-xs text-secondary font-semibold mb-4">
           Story Genome
@@ -69,7 +63,7 @@ export function GenomePanel({ story }: { story: Story }) {
           </span>
         ))}
       </GenomeRow>
-    </motion.div>
+    </div>
   );
 }
 

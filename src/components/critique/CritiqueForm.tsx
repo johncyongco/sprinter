@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Heart, Send } from "lucide-react";
 import type { CritiqueScoreKey } from "@/types";
 import { CRITIQUE_DIMENSIONS, submitCritique } from "@/services/critiques";
@@ -38,10 +37,7 @@ export function CritiqueForm({ storyId }: { storyId: string }) {
     Object.values(scores).reduce((a, b) => a + b, 0) / CRITIQUE_DIMENSIONS.length;
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    <section
       className="rounded-[28px] border border-border bg-surface p-8 sm:p-10 space-y-8"
     >
       <div className="flex items-start justify-between gap-4">
@@ -120,6 +116,6 @@ export function CritiqueForm({ storyId }: { storyId: string }) {
           {mutation.isPending ? "Sending…" : "Share critique"}
         </Button>
       </div>
-    </motion.section>
+    </section>
   );
 }
