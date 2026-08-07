@@ -4,9 +4,10 @@ import { Moon, Sun, Monitor, Download, ShieldCheck, ExternalLink } from "lucide-
 import { getProfile } from "@/services/users";
 import { useUserStore } from "@/stores/useUserStore";
 import { useUIStore, type ThemeMode } from "@/stores/useUIStore";
-import { useDraftStore } from "@/stores/useDraftStore";
 import { getSessionUser, signOutFromSupabase } from "@/services/auth";
-import { exportProfileJson } from "@/utils/format";
+import { getSavedStories, getStories } from "@/services/stories";
+import { getWrittenLibrary } from "@/services/mock";
+import { downloadWritingsMarkdown } from "@/utils/format";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
@@ -92,16 +93,35 @@ export function ProfileSettings() {
     signOut();
   };
 
-  const exportData = () => {
-    const drafts = useDraftStore.getState().drafts;
-    const recentlyViewed = useUIStore.getState().recentlyViewed;
-    const u = useUserStore.getState().user;
-    exportProfileJson({
-      exportedAt: new Date().toISOString(),
-      user: u,
-      drafts,
-      recentlyViewed,
-    });
+  const [exporting, setExporting] = useState(false);
+  const exportData = async () => {
+    setExporting(true);
+    try {
+      const me = user?.id ?? "me";
+      const [saved, published, written] = await Promise.all([
+        getSavedStories(),
+        getStories(),
+        getWrittenLibrary(),
+      ]);
+      downloadWritingsMarkdown({
+        savedStories: saved,
+        publishedStories: published,
+        nodes: written.nodes,
+        critiques: written.critiques,
+        words: written.words,
+        thoughts: written.thoughts.map((t) => ({
+          authorId: t.authorId,
+          content: t.content,
+          createdAt: t.createdAt,
+          quote: t.quote,
+          storyId: t.storyId,
+        })),
+        penName: value.penName || user?.penName || "Your writing",
+      });
+      void me;
+    } finally {
+      setExporting(false);
+    }
   };
 
   const providers = user?.provider === "google" || user?.provider === "github" ? [user.provider] : [];
@@ -244,9 +264,10 @@ export function ProfileSettings() {
         <button
           type="button"
           onClick={exportData}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-secondary transition hover:text-primary"
+          disabled={exporting}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-secondary transition hover:text-primary disabled:opacity-50"
         >
-          <Download className="h-4 w-4" /> Export my writing
+          <Download className="h-4 w-4" /> {exporting ? "Preparing…" : "Export my writing"}
         </button>
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 text-[13px] text-secondary">
           <ShieldCheck className="h-5 w-5 text-gold shrink-0" strokeWidth={1.5} />
