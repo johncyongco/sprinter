@@ -5,7 +5,7 @@ import { getProfile } from "@/services/users";
 import { useUserStore } from "@/stores/useUserStore";
 import { useUIStore, type ThemeMode } from "@/stores/useUIStore";
 import { useDraftStore } from "@/stores/useDraftStore";
-import { signOutFromSupabase } from "@/services/auth";
+import { getSessionUser, signOutFromSupabase } from "@/services/auth";
 import { exportProfileJson } from "@/utils/format";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
@@ -40,11 +40,22 @@ export function ProfileSettings() {
   const toggleNotification = useUIStore((s) => s.toggleNotification);
 
   const [userEdited, setUserEdited] = useState(false);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [form, setForm] = useState<{ penName: string; bio: string; favoriteLine: string }>({
     penName: "",
     bio: "",
     favoriteLine: "",
   });
+
+  useEffect(() => {
+    let alive = true;
+    getSessionUser().then((u) => {
+      if (alive && u) setAccountEmail(u.email ?? null);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const initial = user ?? profile;
   const value = form;
@@ -197,7 +208,7 @@ export function ProfileSettings() {
               <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/10 text-gold font-semibold">E</span>
               <div>
                 <p className="text-sm font-semibold">Email</p>
-                <p className="text-[13px] text-secondary">you@example.com</p>
+                <p className="text-[13px] text-secondary">{accountEmail || (user?.provider ? "Connected via Google" : "Not signed in")}</p>
               </div>
             </div>
             <span className="rounded-full bg-accent/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-accent">Connected</span>
