@@ -34,7 +34,6 @@ export async function getNode(nodeId: string): Promise<BranchNode> {
 
 export async function publishContinuation(input: PublishInput): Promise<BranchNode> {
   const story = STORIES.find((s) => s.id === input.storyId) ?? MY_SEEDS.find((s) => s.id === input.storyId);
-  if (!story) throw new Error("Story not found");
 
   const user = useUserStore.getState().user;
   const authorId = user?.id ?? "me";
@@ -68,13 +67,16 @@ export async function publishContinuation(input: PublishInput): Promise<BranchNo
   });
   const publishedNode = remote ?? node;
 
-  // Mirror into local nodes so offline / fallback still works.
+  // Mirror into local nodes so offline / fallback still works. The story may
+  // be a Supabase-only published story (not in local STORIES), so guard it.
   if (!NODES.some((n) => n.id === publishedNode.id)) NODES.push(publishedNode);
-  story.branchCount += 1;
-  story.continuationCount += 1;
-  story.updatedAt = publishedNode.createdAt;
-  if (!story.contributorIds.includes(authorId)) story.contributorIds.push(authorId);
-  story.completion = Math.min(100, story.completion + 4);
+  if (story) {
+    story.branchCount += 1;
+    story.continuationCount += 1;
+    story.updatedAt = publishedNode.createdAt;
+    if (!story.contributorIds.includes(authorId)) story.contributorIds.push(authorId);
+    story.completion = Math.min(100, story.completion + 4);
+  }
 
   const me = AUTHORS.find((a) => a.id === "me");
   if (me) {

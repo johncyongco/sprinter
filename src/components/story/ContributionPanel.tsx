@@ -5,14 +5,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Eye,
   EyeOff,
   Feather,
   Link2,
-  Plus,
   Quote,
   Save,
   Send,
@@ -20,15 +19,12 @@ import {
   X,
 } from "lucide-react";
 import { publishContinuation } from "@/services/continuations";
-import { getVault } from "@/services/words";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { useAutosave } from "@/hooks/useAutosave";
 import { Markdown } from "@/lib/markdown";
-import { WordTag } from "@/components/words/WordTag";
-import { AddWordModal } from "@/components/story/AddWordModal";
 import { countWords } from "@/lib/reading";
 import { cn } from "@/lib/cn";
-import type { BeautifulWord, BranchNode, ContributionType, DraftReference, Story } from "@/types";
+import type { BranchNode, ContributionType, DraftReference, Story } from "@/types";
 
 const TYPES: ContributionType[] = [
   "Continue",
@@ -65,14 +61,6 @@ export const ContributionPanel = forwardRef<ContributionPanelHandle, {
     const [wordIds, setWordIds] = useState<string[]>([]);
     const [references, setReferences] = useState<DraftReference[]>([]);
     const [preview, setPreview] = useState(false);
-    const [wordModal, setWordModal] = useState(false);
-    const [wordMap, setWordMap] = useState<Record<string, BeautifulWord>>({});
-
-    const vaultQuery = useQuery({ queryKey: ["vault"], queryFn: getVault });
-
-    const resolvedWords = wordIds
-      .map((id) => wordMap[id] ?? vaultQuery.data?.find((w) => w.id === id))
-      .filter((w): w is BeautifulWord => Boolean(w));
 
     useEffect(() => {
       const draft = draftStore.getDraft(story.id);
@@ -137,13 +125,6 @@ export const ContributionPanel = forwardRef<ContributionPanelHandle, {
 
     const words = countWords(body);
     const canPublish = words >= 20 && title.trim().length > 0 && body.trim().length > 0;
-
-    const addWord = (word: BeautifulWord) => {
-      setWordIds((prev) => (prev.includes(word.id) ? prev : [...prev]));
-      setWordMap((m) => ({ ...m, [word.id]: word }));
-    };
-
-    const removeWord = (id: string) => setWordIds((prev) => prev.filter((w) => w !== id));
 
     const parentOptions = [
       { id: null as string | null, label: `The seed — ${story.title}` },
@@ -303,35 +284,6 @@ export const ContributionPanel = forwardRef<ContributionPanelHandle, {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-secondary">Beautiful words</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {resolvedWords.map((w) => (
-                <span key={w.id} className="inline-flex items-center gap-1">
-                  <WordTag word={w} interactive={false} />
-                  <button
-                    type="button"
-                    onClick={() => removeWord(w.id)}
-                    className="rounded-full p-0.5 text-secondary transition hover:text-danger"
-                    aria-label={`Remove ${w.term}`}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </span>
-              ))}
-              <button
-                type="button"
-                onClick={() => setWordModal(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-4 py-2 text-[13px] font-medium text-secondary transition hover:border-gold/50 hover:text-primary"
-              >
-                <Plus className="h-3.5 w-3.5" /> Add Word
-              </button>
-            </div>
-            {wordIds.length > 0 && (
-              <p className="text-[12px] text-secondary">Words attached to your branch join the Word Vault.</p>
-            )}
-          </div>
-
           <div className="flex items-center justify-between gap-4 pt-2">
             <p className="text-[12px] text-secondary max-w-[240px]">
               Publishing never overwrites — your branch becomes a new leaf on the tree.
@@ -351,8 +303,6 @@ export const ContributionPanel = forwardRef<ContributionPanelHandle, {
             </button>
           </div>
         </div>
-
-        <AddWordModal open={wordModal} onClose={() => setWordModal(false)} onAdd={addWord} />
       </div>
     );
   },

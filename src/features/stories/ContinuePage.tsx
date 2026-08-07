@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Feather, Check, Loader2 } from "lucide-react";
 import { getStoryBySlug } from "@/services/stories";
 import { getBranches, publishContinuation } from "@/services/continuations";
-import { getVault } from "@/services/words";
-import { authorById, wordById } from "@/services/mock";
+import { authorById } from "@/services/mock";
 import type { ContributionType } from "@/types";
 import { StoryEditor } from "@/components/story/StoryEditor";
 import { Button } from "@/components/ui/Button";
@@ -47,8 +46,6 @@ export default function ContinuePage() {
     queryFn: () => getBranches(story!.id),
     enabled: Boolean(story),
   });
-
-  const vaultQuery = useQuery({ queryKey: ["vault"], queryFn: getVault });
 
   const user = useUserStore((s) => s.user);
   const saveDraft = useDraftStore((s) => s.saveDraft);
@@ -96,7 +93,6 @@ export default function ContinuePage() {
     },
   });
 
-  const vault = vaultQuery.data ?? [];
   const branches = branchesQuery.data ?? [];
   const parentOptions = useMemo(
     () => [
@@ -274,49 +270,6 @@ export default function ContinuePage() {
               lastSaved={lastSaved}
             />
           </div>
-
-          <section className="rounded-[28px] border border-border bg-surface p-7 sm:p-8 space-y-5">
-            <div>
-              <p className="uppercase tracking-[0.25em] text-xs text-gold font-semibold mb-2">
-                Beautiful Words
-              </p>
-              <p className="text-sm text-secondary leading-relaxed">
-                Attach words this branch carries. They feed the Vault and the story's genome.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {vault.slice(0, 12).map((w) => {
-                const active = wordIds.includes(w.id);
-                return (
-                  <button
-                    key={w.id}
-                    type="button"
-                    onClick={() =>
-                      setWordIds((ids) =>
-                        active ? ids.filter((id) => id !== w.id) : [...ids, w.id],
-                      )
-                    }
-                    aria-pressed={active}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-medium transition-all duration-300",
-                      active
-                        ? "border-gold bg-gold text-white"
-                        : "border-border bg-card text-primary hover:border-gold/50",
-                    )}
-                  >
-                    {active && <Check className="h-3.5 w-3.5" />}
-                    {w.term}
-                  </button>
-                );
-              })}
-            </div>
-            {wordIds.length > 0 && (
-              <p className="text-[13px] text-secondary">
-                Attached:{" "}
-                {wordIds.map((id) => wordById(id)?.term).filter(Boolean).join(", ")}
-              </p>
-            )}
-          </section>
 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-secondary max-w-md">
