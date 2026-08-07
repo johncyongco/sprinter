@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { useUserStore } from "@/stores/useUserStore";
 import { useUIStore, type ThemeMode } from "@/stores/useUIStore";
+import { onAuthStateChange, supabaseUserToProfile } from "@/services/auth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,16 +57,29 @@ function ThemeColor() {
 function AuthRoot() {
   const user = useUserStore((s) => s.user);
   const onboarded = useUserStore((s) => s.onboarded);
+  const setSessionUser = useUserStore((s) => s.setSessionUser);
   const location = window.location.pathname;
 
   useEffect(() => {
-    const isAuthPage = location === "/login" || location === "/onboarding";
-    if (user && onboarded && isAuthPage) {
+    const unsub = onAuthStateChange((authUser) => {
+      if (authUser) {
+        setSessionUser(supabaseUserToProfile(authUser), true);
+      }
+    });
+    return unsub;
+  }, [setSessionUser]);
+
+  // A real, authenticated account has a provider; the default guest has none.
+  const isAuthenticated = Boolean(user?.provider);
+  const isAuthPage = location === "/login" || location === "/onboarding";
+
+  useEffect(() => {
+    if (isAuthenticated && onboarded && isAuthPage) {
       window.location.assign("/");
-    } else if (user && !onboarded && location !== "/onboarding") {
+    } else if (isAuthenticated && !onboarded && location !== "/onboarding") {
       window.location.assign("/onboarding");
     }
-  }, [user, onboarded, location]);
+  }, [isAuthenticated, onboarded, isAuthPage, location]);
 
   return null;
 }

@@ -89,6 +89,14 @@ export function Navbar() {
           >
             <Avatar text={user?.avatar ?? "Y"} size="sm" />
           </Link>
+          {!user?.provider && (
+            <Link
+              to="/login"
+              className="hidden lg:inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-[13px] font-semibold text-secondary transition hover:border-accent/40 hover:text-primary"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
       <WriteChoiceModal open={writeOpen} onClose={() => setWriteOpen(false)} />

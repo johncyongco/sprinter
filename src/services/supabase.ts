@@ -109,64 +109,82 @@ export function storyRowToStory(row: StoryRow): Story {
 
 export async function fetchPublishedStories(): Promise<Story[] | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("stories")
-    .select("*, continuations(author_id)")
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
-  return (data as StoryRow[]).map(storyRowToStory);
+  try {
+    const { data, error } = await supabase!
+      .from("stories")
+      .select("*, continuations(author_id)")
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    return (data as StoryRow[]).map(storyRowToStory);
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchStoryBySlug(slug: string): Promise<Story | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("stories")
-    .select("*, continuations(author_id)")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  return storyRowToStory(data as StoryRow);
+  try {
+    const { data, error } = await supabase!
+      .from("stories")
+      .select("*, continuations(author_id)")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return storyRowToStory(data as StoryRow);
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchStoryById(id: string): Promise<Story | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("stories")
-    .select("*, continuations(author_id)")
-    .eq("id", id)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  return storyRowToStory(data as StoryRow);
+  try {
+    const { data, error } = await supabase!
+      .from("stories")
+      .select("*, continuations(author_id)")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return storyRowToStory(data as StoryRow);
+  } catch {
+    return null;
+  }
 }
 
 export async function insertPublishedStory(story: Story): Promise<Story | null> {
   if (!isBackendUp()) return null;
-  const { error } = await supabase!
-    .from("stories")
-    .insert({
-      slug: story.slug,
-      title: story.title,
-      cover: story.cover || null,
-      seed_author_id: story.seedAuthorId,
-      genres: story.genres,
-      emotion: story.emotion,
-      themes: story.themes,
-      perspective: story.perspective,
-      pacing: story.pacing,
-      status: story.status,
-      body: story.body,
-      words: story.words,
-      reading_minutes: story.readingMinutes,
-      beautiful_words: story.beautifulWords,
-      completion: story.completion,
-      is_editorial_pick: story.isEditorialPick,
-      is_weekly_prompt: story.isWeeklyPrompt,
-      challenge_id: story.challengeId ?? null,
-    });
-  if (error) throw error;
-  return fetchStoryById(story.id) ?? (await fetchStoryBySlug(story.slug));
+  try {
+    const { data, error } = await supabase!
+      .from("stories")
+      .insert({
+        slug: story.slug,
+        title: story.title,
+        cover: story.cover || null,
+        seed_author_id: story.seedAuthorId,
+        genres: story.genres,
+        emotion: story.emotion,
+        themes: story.themes,
+        perspective: story.perspective,
+        pacing: story.pacing,
+        status: story.status,
+        body: story.body,
+        words: story.words,
+        reading_minutes: story.readingMinutes,
+        beautiful_words: story.beautifulWords,
+        completion: story.completion,
+        is_editorial_pick: story.isEditorialPick,
+        is_weekly_prompt: story.isWeeklyPrompt,
+        challenge_id: story.challengeId ?? null,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return storyRowToStory(data as StoryRow);
+  } catch {
+    return null;
+  }
 }
 
 export async function deleteStoryBySlug(slug: string): Promise<void> {
@@ -195,13 +213,17 @@ export function continuationRowToNode(row: ContinuationRow): BranchNode {
 
 export async function fetchContinuationsForStory(storyId: string): Promise<BranchNode[] | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("continuations")
-    .select("*")
-    .eq("story_id", storyId)
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-  return ((data as ContinuationRow[]) ?? []).map(continuationRowToNode);
+  try {
+    const { data, error } = await supabase!
+      .from("continuations")
+      .select("*")
+      .eq("story_id", storyId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return ((data as ContinuationRow[]) ?? []).map(continuationRowToNode);
+  } catch {
+    return null;
+  }
 }
 
 export async function insertContinuation(input: {
@@ -215,42 +237,54 @@ export async function insertContinuation(input: {
   beautifulWordIds: string[];
 }): Promise<BranchNode | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("continuations")
-    .insert({
-      story_id: input.storyId,
-      parent_id: input.parentId,
-      type: input.type,
-      author_id: input.authorId,
-      title: input.title,
-      body: input.body,
-      words: input.words,
-      beautiful_word_ids: input.beautifulWordIds,
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return continuationRowToNode(data as ContinuationRow);
+  try {
+    const { data, error } = await supabase!
+      .from("continuations")
+      .insert({
+        story_id: input.storyId,
+        parent_id: input.parentId,
+        type: input.type,
+        author_id: input.authorId,
+        title: input.title,
+        body: input.body,
+        words: input.words,
+        beautiful_word_ids: input.beautifulWordIds,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return continuationRowToNode(data as ContinuationRow);
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchContributionsByAuthor(authorId: string): Promise<BranchNode[] | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("continuations")
-    .select("*")
-    .eq("author_id", authorId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return ((data as ContinuationRow[]) ?? []).map(continuationRowToNode);
+  try {
+    const { data, error } = await supabase!
+      .from("continuations")
+      .select("*")
+      .eq("author_id", authorId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return ((data as ContinuationRow[]) ?? []).map(continuationRowToNode);
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchStoriesByAuthor(authorId: string): Promise<Story[] | null> {
   if (!isBackendUp()) return null;
-  const { data, error } = await supabase!
-    .from("stories")
-    .select("*, continuations(author_id)")
-    .eq("seed_author_id", authorId)
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
-  return ((data as StoryRow[]) ?? []).map(storyRowToStory);
+  try {
+    const { data, error } = await supabase!
+      .from("stories")
+      .select("*, continuations(author_id)")
+      .eq("seed_author_id", authorId)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    return ((data as StoryRow[]) ?? []).map(storyRowToStory);
+  } catch {
+    return null;
+  }
 }

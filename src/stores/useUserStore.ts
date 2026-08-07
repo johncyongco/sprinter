@@ -27,6 +27,7 @@ interface UserState {
   user: UserProfile | null;
   onboarded: boolean;
   signIn: (provider?: UserProfile["provider"]) => void;
+  setSessionUser: (user: UserProfile | null, onboarded?: boolean) => void;
   completeOnboarding: (profile: OnboardingProfile) => void;
   updateProfile: (patch: Partial<UserProfile>) => void;
   signOut: () => void;
@@ -77,6 +78,8 @@ export const useUserStore = create<UserState>()(
           },
           onboarded: false,
         }),
+      setSessionUser: (sessionUser, onboarded = true) =>
+        set({ user: sessionUser, onboarded: sessionUser ? onboarded : false }),
       completeOnboarding: (profile) =>
         set((s) => ({
           onboarded: true,
@@ -107,11 +110,11 @@ export const useUserStore = create<UserState>()(
               }
             : {},
         ),
-      signOut: () => set({ user: null, onboarded: false }),
+      signOut: () => set({ user: GUEST_USER, onboarded: true }),
     }),
     {
       name: "sprinter-user",
-      version: 2,
+      version: 3,
       migrate: () => ({ user: GUEST_USER, onboarded: true }),
     },
   ),

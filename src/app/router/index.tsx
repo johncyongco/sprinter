@@ -32,6 +32,7 @@ const SavedStoriesPage = lazyPage(() => import("@/features/profile/SavedStoriesP
 const SettingsPage = lazyPage(() => import("@/features/profile/SettingsPage"));
 const SearchPage = lazyPage(() => import("@/features/search/SearchPage"));
 const OnboardingPage = lazyPage(() => import("@/features/auth/OnboardingPage"));
+const LoginPage = lazyPage(() => import("@/features/auth/LoginPage"));
 const NotFoundPage = lazyPage(() => import("@/features/NotFoundPage"));
 
 export const router = createBrowserRouter([
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
   {
     path: "onboarding",
     element: <OnboardingPage />,
+  },
+  {
+    path: "login",
+    element: <LoginPage />,
   },
   {
     path: "signout",

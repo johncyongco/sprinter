@@ -5,6 +5,7 @@ import { getProfile } from "@/services/users";
 import { useUserStore } from "@/stores/useUserStore";
 import { useUIStore, type ThemeMode } from "@/stores/useUIStore";
 import { useDraftStore } from "@/stores/useDraftStore";
+import { signOutFromSupabase } from "@/services/auth";
 import { exportProfileJson } from "@/utils/format";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
@@ -48,6 +49,11 @@ export function ProfileSettings() {
     setSaved(true);
     queryClient.invalidateQueries({ queryKey: ["profile"] });
     window.setTimeout(() => setSaved(false), 1800);
+  };
+
+  const handleSignOut = async () => {
+    await signOutFromSupabase();
+    signOut();
   };
 
   const exportData = () => {
@@ -216,7 +222,7 @@ export function ProfileSettings() {
         <h2 className="font-display text-3xl tracking-[-0.03em]">Account</h2>
         <button
           type="button"
-          onClick={signOut}
+          onClick={handleSignOut}
           className="rounded-full border border-danger/30 text-danger px-6 py-3 text-sm font-semibold transition hover:bg-danger/5"
         >
           Sign out
