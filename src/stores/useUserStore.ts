@@ -103,32 +103,24 @@ export const useUserStore = create<UserState>()(
           onboarded: false,
         }),
       setSessionUser: (sessionUser, onboarded = true) =>
-        set((s) => {
+        set(() => {
           if (!sessionUser) return { user: sessionUser, onboarded: false };
-          // Prefer the edited profile saved for this account, then the live
-          // session's user, so a re-login never reverts the pen name.
+          // Cloud/profile values passed in are authoritative for non-empty
+          // fields; the local stored profile is only a fallback when the
+          // passed profile has no edits yet.
           const stored = loadStoredProfile(sessionUser.id);
-          const prev =
-            s.user && s.user.id === sessionUser.id ? s.user : undefined;
-          const editable = stored
-            ? {
-                penName: stored.penName || sessionUser.penName,
-                avatar: stored.avatar || sessionUser.avatar,
-                bio: stored.bio ?? "",
-                favoriteLine: stored.favoriteLine ?? "",
-                genres: stored.genres,
-                favoriteWordIds: stored.favoriteWordIds,
-                goals: stored.goals,
-              }
-            : {
-                penName: prev?.penName || sessionUser.penName,
-                avatar: prev?.avatar || sessionUser.avatar,
-                bio: prev?.bio ?? "",
-                favoriteLine: prev?.favoriteLine ?? "",
-                genres: prev?.genres ?? sessionUser.genres,
-                favoriteWordIds: prev?.favoriteWordIds ?? sessionUser.favoriteWordIds,
-                goals: prev?.goals ?? sessionUser.goals,
-              };
+          const src = sessionUser;
+          const editable = {
+            penName: src.penName || stored?.penName || "",
+            avatar: src.avatar || stored?.avatar || "Y",
+            bio: src.bio ?? stored?.bio ?? "",
+            favoriteLine: src.favoriteLine ?? stored?.favoriteLine ?? "",
+            genres: src.genres && src.genres.length ? src.genres : (stored?.genres ?? []),
+            favoriteWordIds: src.favoriteWordIds?.length
+              ? src.favoriteWordIds
+              : (stored?.favoriteWordIds ?? []),
+            goals: src.goals?.length ? src.goals : (stored?.goals ?? []),
+          };
           return {
             user: { ...sessionUser, ...editable },
             onboarded,

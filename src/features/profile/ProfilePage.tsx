@@ -1,26 +1,37 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Feather, MessageSquareHeart, GitFork, FileText, Award, Bookmark } from "lucide-react";
+import {
+  Feather,
+  MessageSquareHeart,
+  GitFork,
+  FileText,
+  Award,
+  Bookmark,
+  FilePenLine,
+  Library,
+  Trophy,
+  Settings,
+} from "lucide-react";
 import { getProfile } from "@/services/users";
 import { getStories, getSavedStories } from "@/services/stories";
 import { getWrittenLibrary } from "@/services/mock";
 import { getAnthologies } from "@/services/anthologies";
 import { getCollections } from "@/services/communities";
-import { Tabs } from "@/components/ui/Tabs";
 import { Avatar } from "@/components/ui/Avatar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { cn } from "@/lib/cn";
 import { ProfileSettings } from "./ProfileSettings";
 import type { Author, Draft } from "@/types";
 
 const TABS = [
-  { id: "drafts", label: "Drafts" },
-  { id: "collections", label: "Collections" },
-  { id: "achievements", label: "Achievements" },
-  { id: "settings", label: "Settings" },
+  { id: "drafts", label: "Drafts", icon: FilePenLine, caption: "In-progress notes" },
+  { id: "collections", label: "Collections", icon: Library, caption: "Bookmarks & shelves" },
+  { id: "achievements", label: "Achievements", icon: Trophy, caption: "Your milestones" },
+  { id: "settings", label: "Settings", icon: Settings, caption: "Profile & preferences" },
 ];
 
 export default function ProfilePage() {
@@ -122,7 +133,46 @@ export default function ProfilePage() {
       </header>
 
       <div className="space-y-10">
-        <Tabs items={TABS} active={tab} onChange={setTab} equal />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {TABS.map((t) => {
+            const isActive = tab === t.id;
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                aria-pressed={isActive}
+                className="rounded-3xl border bg-card p-5 text-left transition-all duration-300 hover:-translate-y-0.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <Icon
+                    className={cn("h-5 w-5", isActive ? "text-gold" : "text-secondary")}
+                    strokeWidth={1.5}
+                  />
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                      isActive
+                        ? "bg-gold/10 text-gold"
+                        : "bg-surface text-secondary",
+                    )}
+                  >
+                    {t.label}
+                  </span>
+                </div>
+                <p
+                  className={cn(
+                    "mt-3 text-[13px] font-medium",
+                    isActive ? "text-primary" : "text-secondary",
+                  )}
+                >
+                  {t.caption}
+                </p>
+              </button>
+            );
+          })}
+        </div>
 
         {tab === "drafts" && (
           <DraftsTab drafts={drafts} slugOf={(id) => allStories?.find((s) => s.id === id)?.slug ?? ""} />
