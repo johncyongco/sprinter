@@ -1,4 +1,10 @@
 import { NODES, STORIES, MY_SEEDS, AUTHORS, delay, nodesFor, authorById, persistLibrary } from "./mock";
+import {
+  fetchContinuationsForStory,
+  fetchContributionsByAuthor,
+  fetchPublishedStories,
+  insertContinuation,
+} from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
 import { countWords } from "@/lib/reading";
 import type { BranchNode, ContributionType } from "@/types";
@@ -13,6 +19,8 @@ export interface PublishInput {
 }
 
 export async function getBranches(storyId: string): Promise<BranchNode[]> {
+  const remote = await fetchContinuationsForStory(storyId);
+  if (remote) return remote;
   await delay(180);
   return nodesFor(storyId).map((n) => ({ ...n, beautifulWordIds: [...n.beautifulWordIds] }));
 }
@@ -25,7 +33,6 @@ export async function getNode(nodeId: string): Promise<BranchNode> {
 }
 
 export async function publishContinuation(input: PublishInput): Promise<BranchNode> {
-  await delay(420);
   const story = STORIES.find((s) => s.id === input.storyId) ?? MY_SEEDS.find((s) => s.id === input.storyId);
   if (!story) throw new Error("Story not found");
 
@@ -47,22 +54,37 @@ export async function publishContinuation(input: PublishInput): Promise<BranchNo
     isSeed: false,
   };
 
-  NODES.push(node);
+  // Save to Supabase so the branch appears on the published story's tree
+  // (Explore) and in the author's own continuations.
+  const remote = await insertContinuation({
+    storyId: input.storyId,
+    parentId: input.parentId,
+    type: input.type,
+    authorId,
+    title: node.title,
+    body: node.body,
+    words: node.words,
+    beautifulWordIds: input.beautifulWordIds,
+  });
+  const publishedNode = remote ?? node;
+
+  // Mirror into local nodes so offline / fallback still works.
+  if (!NODES.some((n) => n.id === publishedNode.id)) NODES.push(publishedNode);
   story.branchCount += 1;
   story.continuationCount += 1;
-  story.updatedAt = node.createdAt;
+  story.updatedAt = publishedNode.createdAt;
   if (!story.contributorIds.includes(authorId)) story.contributorIds.push(authorId);
   story.completion = Math.min(100, story.completion + 4);
 
   const me = AUTHORS.find((a) => a.id === "me");
   if (me) {
-    me.stats.wordsAdded += node.words;
+    me.stats.wordsAdded += publishedNode.words;
     me.stats.continuations += 1;
   }
 
   persistLibrary();
 
-  return node;
+  return publishedNode;
 }
 
 function untitledFor(type: ContributionType): string {
@@ -93,6 +115,14 @@ export async function getStoryContributors(storyId: string) {
 }
 
 export async function getContributionsByAuthor(authorId: string) {
+  const remote = await fetchContributionsByAuthor(authorId);
+  if (remote) {
+    const stories = (await fetchPublishedStories()) ?? [];
+    return remote.map((n) => ({
+      node: { ...n, beautifulWordIds: [...n.beautifulWordIds] },
+      story: stories.find((s) => s.id === n.storyId) ?? null,
+    }));
+  }
   await delay(160);
   return NODES.filter((n) => n.authorId === authorId).map((n) => ({
     node: { ...n, beautifulWordIds: [...n.beautifulWordIds] },

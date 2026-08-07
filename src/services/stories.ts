@@ -1,4 +1,10 @@
 import { STORIES, MY_SEEDS, delay, nodesFor, critiquesFor, makeCover, persistLibrary } from "./mock";
+import {
+  fetchPublishedStories,
+  fetchStoryById,
+  fetchStoryBySlug,
+  insertPublishedStory,
+} from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
 import type {
   CompletionStatus,
@@ -37,11 +43,15 @@ export const EMPTY_FILTERS: StoryFilters = {
 };
 
 export async function getStories(): Promise<Story[]> {
+  const remote = await fetchPublishedStories();
+  if (remote) return remote;
   await delay(200);
   return STORIES.map((s) => ({ ...s, contributorIds: [...s.contributorIds] }));
 }
 
 export async function getStory(id: string): Promise<Story> {
+  const remote = await fetchStoryById(id);
+  if (remote) return remote;
   await delay(180);
   const story = STORIES.find((s) => s.id === id) ?? MY_SEEDS.find((s) => s.id === id);
   if (!story) throw new Error(`Story not found: ${id}`);
@@ -49,6 +59,8 @@ export async function getStory(id: string): Promise<Story> {
 }
 
 export async function getStoryBySlug(slug: string): Promise<Story> {
+  const remote = await fetchStoryBySlug(slug);
+  if (remote) return remote;
   await delay(180);
   const story = STORIES.find((s) => s.slug === slug) ?? MY_SEEDS.find((s) => s.slug === slug);
   if (!story) throw new Error(`Story not found: ${slug}`);
@@ -125,15 +137,28 @@ export async function createStory(input: NewStoryInput): Promise<Story> {
 }
 
 export async function publishStory(storyId: string): Promise<Story> {
-  await delay(240);
   const index = MY_SEEDS.findIndex((s) => s.id === storyId);
+  let story: Story;
   if (index === -1) {
     const published = STORIES.find((s) => s.id === storyId);
     if (!published) throw new Error(`Seed not found: ${storyId}`);
-    return { ...published, contributorIds: [...published.contributorIds] };
+    story = published;
+  } else {
+    story = MY_SEEDS[index];
   }
-  const [story] = MY_SEEDS.splice(index, 1);
-  STORIES.unshift(story);
+
+  // Save to the Explore library (Supabase) so others can continue it.
+  const remote = await insertPublishedStory(story);
+  if (remote) story = remote;
+
+  // Mirror into local published stories so Explore still works offline /
+  // as a fallback, and remove it from saved seeds.
+  if (index !== -1) {
+    MY_SEEDS.splice(index, 1);
+    if (!STORIES.some((s) => s.id === story.id)) {
+      STORIES.unshift({ ...story, contributorIds: [...story.contributorIds] });
+    }
+  }
   persistLibrary();
   return { ...story, contributorIds: [...story.contributorIds] };
 }
@@ -178,7 +203,17 @@ export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {
 }
 
 export async function getStoryCount(): Promise<number> {
-  return STORIES.length + MY_SEEDS.length;
+  const remote = await fetchPublishedStories();
+  if (remote) return remote.length;
+  return STORIES.length;
+}
+
+export async function getSavedStories(): Promise<Story[]> {
+  const me = useUserStore.getState().user?.id ?? "me";
+  return MY_SEEDS.filter((s) => s.seedAuthorId === me).map((s) => ({
+    ...s,
+    contributorIds: [...s.contributorIds],
+  }));
 }
 
 export async function getStoriesByFilter(
@@ -186,7 +221,9 @@ export async function getStoriesByFilter(
   page = 0,
   perPage = 8,
 ): Promise<{ items: Story[]; next: number | null }> {
-  let items = [...MY_SEEDS, ...STORIES];
+  await delay(30);
+  const remote = await fetchPublishedStories();
+  let items = remote ? [...remote] : [...STORIES];
 
   if (filters.query) {
     const q = filters.query.toLowerCase();
@@ -239,14 +276,16 @@ export async function getHomeFeed(): Promise<{
   picks: Story[];
   trendingWordIds: string[];
 }> {
-  await delay(260);
-  const waiting = [...STORIES]
+  const remote = await fetchPublishedStories();
+  const source = remote ? [...remote] : [...STORIES];
+  await delay(30);
+  const waiting = source
     .filter((s) => s.status !== "Complete")
     .sort((a, b) => b.continuationCount - a.continuationCount)
     .slice(0, 6);
-  const weeklyPrompt = STORIES.find((s) => s.isWeeklyPrompt) ?? null;
-  const relay = STORIES.find((s) => s.id === "st-111") ?? null;
-  const picks = STORIES.filter((s) => s.isEditorialPick).slice(0, 3);
+  const weeklyPrompt = source.find((s) => s.isWeeklyPrompt) ?? null;
+  const relay = source.find((s) => s.slug === "the-exchange") ?? source.find((s) => s.id === "st-111") ?? null;
+  const picks = source.filter((s) => s.isEditorialPick).slice(0, 3);
   const trendingWordIds = ["w-yr", "w-pil", "w-sil", "w-mrc", "w-dst", "w-hom", "w-mem"];
   return { waiting, weeklyPrompt, relay, picks, trendingWordIds };
 }

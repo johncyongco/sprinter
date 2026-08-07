@@ -165,6 +165,7 @@ function PublishSeedButton({ story }: { story: Story }) {
     mutationFn: () => publishStory(story.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
       queryClient.invalidateQueries({ queryKey: ["story", "slug", story.slug] });
       queryClient.invalidateQueries({ queryKey: ["story", story.id] });
     },

@@ -28,6 +28,7 @@ const CommunitiesPage = lazyPage(() => import("@/features/communities/Communitie
 const CommunityDetailPage = lazyPage(() => import("@/features/communities/CommunityDetailPage"));
 const NotificationsPage = lazyPage(() => import("@/features/notifications/NotificationsPage"));
 const ProfilePage = lazyPage(() => import("@/features/profile/ProfilePage"));
+const SavedStoriesPage = lazyPage(() => import("@/features/profile/SavedStoriesPage"));
 const SettingsPage = lazyPage(() => import("@/features/profile/SettingsPage"));
 const SearchPage = lazyPage(() => import("@/features/search/SearchPage"));
 const OnboardingPage = lazyPage(() => import("@/features/auth/OnboardingPage"));
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       { path: "communities/:communityId", element: <CommunityDetailPage /> },
       { path: "notifications", element: <NotificationsPage /> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "profile/stories", element: <SavedStoriesPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "search", element: <SearchPage /> },
       { path: "*", element: <NotFoundPage /> },

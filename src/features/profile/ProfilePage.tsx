@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Feather, MessageSquareHeart, GitFork, FileText, Award, Bookmark } from "lucide-react";
 import { getProfile } from "@/services/users";
-import { getStories } from "@/services/stories";
+import { getStories, getSavedStories } from "@/services/stories";
 import { getWrittenLibrary } from "@/services/mock";
 import { getAnthologies } from "@/services/anthologies";
 import { getCollections } from "@/services/communities";
@@ -28,9 +28,11 @@ export default function ProfilePage() {
   const user = useUserStore((s) => s.user);
   const me = user?.id ?? "me";
 
-  const { data: profile, isLoading } = useQuery({ queryKey: ["profile", me], queryFn: getProfile });
+  const { data: profile, isLoading } = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const { data: allStories } = useQuery({ queryKey: ["stories"], queryFn: getStories });
   const { data: collections } = useQuery({ queryKey: ["collections"], queryFn: getCollections });
+  const { data: saved } = useQuery({ queryKey: ["saved-stories", me], queryFn: getSavedStories });
+  const { data: written } = useQuery({ queryKey: ["written", me], queryFn: getWrittenLibrary });
   const draftList = useDraftStore((s) => s.drafts);
   const drafts = Object.values(draftList);
 
@@ -46,10 +48,10 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   const stats = [
-    { icon: FileText, label: "Stories started", value: profile.stats.storiesStarted },
-    { icon: GitFork, label: "Continuations", value: profile.stats.continuations },
+    { icon: FileText, label: "Stories started", value: saved?.length ?? profile.stats.storiesStarted },
+    { icon: GitFork, label: "Continuations", value: written?.nodes.length ?? profile.stats.continuations },
     { icon: Feather, label: "Words added", value: profile.stats.wordsAdded.toLocaleString() },
-    { icon: MessageSquareHeart, label: "Critiques", value: profile.stats.critiques },
+    { icon: MessageSquareHeart, label: "Critiques", value: written?.critiques.length ?? profile.stats.critiques },
   ];
 
   return (
@@ -90,13 +92,32 @@ export default function ProfilePage() {
         </div>
 
         <div className="mt-8 sm:mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-3xl border border-border bg-card p-6 space-y-2">
-              <s.icon className="h-5 w-5 text-gold" strokeWidth={1.5} />
-              <p className="text-3xl font-semibold leading-none">{s.value}</p>
-              <p className="text-[13px] text-secondary">{s.label}</p>
-            </div>
-          ))}
+          {stats.map((s) => {
+            const clickable =
+              s.label === "Stories started" ||
+              s.label === "Continuations" ||
+              s.label === "Critiques";
+            const inner = (
+              <>
+                <s.icon className="h-5 w-5 text-gold" strokeWidth={1.5} />
+                <p className="text-3xl font-semibold leading-none">{s.value}</p>
+                <p className="text-[13px] text-secondary">{s.label}</p>
+              </>
+            );
+            return clickable ? (
+              <Link
+                key={s.label}
+                to="/profile/stories"
+                className="rounded-3xl border border-border bg-card p-6 space-y-2 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-card"
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div key={s.label} className="rounded-3xl border border-border bg-card p-6 space-y-2">
+                {inner}
+              </div>
+            );
+          })}
         </div>
       </header>
 
