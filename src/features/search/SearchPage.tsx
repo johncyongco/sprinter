@@ -38,11 +38,7 @@ export default function SearchPage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-10"
     >
-      <div className="max-w-3xl mx-auto text-center space-y-6">
-        <p className="uppercase tracking-[0.25em] text-xs text-gold font-semibold">Search</p>
-        <h1 className="font-display text-[3.5rem] leading-[0.95] tracking-[-0.05em] max-sm:text-[2.5rem]">
-          Find the story, word, or writer you're looking for
-        </h1>
+      <div className="max-w-3xl mx-auto space-y-6">
         <div className="relative">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary/60" />
           <input

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Timer, Users, ArrowRight, Trophy } from "lucide-react";
+import { Timer, Users, Trophy, Feather } from "lucide-react";
 import { getChallenges, getLeaderboard, getChallengeStory } from "@/services/challenges";
 import type { Challenge, ChallengeKind } from "@/types";
 import { SectionHeading } from "@/components/common/SectionHeading";
@@ -36,28 +36,41 @@ export default function ChallengesPage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-12"
     >
-      <SectionHeading
-        eyebrow="Challenges"
-        title="Small rooms, gentle deadlines"
-        subtitle="Prompts that ask for a sentence, a paragraph, a whole relay. Every challenge is judged on craftsmanship — not on how fast you wrote it."
-      />
-
-      <div className="flex flex-wrap gap-2">
-        {KINDS.map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => setKind(k)}
-            className={cn(
-              "rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-300",
-              kind === k
-                ? "border-primary bg-primary text-background"
-                : "border-border bg-card text-secondary hover:text-primary",
-            )}
-          >
-            {k}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-x-7 gap-y-2 border-b border-border">
+        {KINDS.map((k) => {
+          const active = kind === k;
+          const count =
+            k === "All"
+              ? challenges?.length ?? 0
+              : challenges?.filter((c) => c.kind === k).length ?? 0;
+          return (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setKind(k)}
+              className={cn(
+                "relative -mb-px flex items-center gap-1.5 pb-2.5 text-sm font-medium transition-colors duration-300",
+                active ? "text-primary" : "text-secondary hover:text-primary",
+              )}
+            >
+              {k}
+              <span
+                className={cn(
+                  "text-xs tabular-nums",
+                  active ? "text-accent" : "text-secondary/70",
+                )}
+              >
+                {count}
+              </span>
+              <span
+                className={cn(
+                  "absolute inset-x-0 bottom-0 h-0.5 transition-colors duration-300",
+                  active ? "bg-accent" : "bg-transparent",
+                )}
+              />
+            </button>
+          );
+        })}
       </div>
 
       {isLoading ? (
@@ -166,10 +179,16 @@ function ChallengeCard({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          to={`/challenges/${challenge.id}`}
+          to={`/write?challenge=${challenge.id}`}
           className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-background transition hover:scale-[1.03] active:scale-95"
         >
-          Join the prompt <ArrowRight className="h-4 w-4" />
+          <Feather className="h-4 w-4" /> Write your entry
+        </Link>
+        <Link
+          to={`/challenges/${challenge.id}`}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-secondary transition hover:scale-[1.03] hover:text-primary active:scale-95"
+        >
+          See details
         </Link>
         {featured && (
           <Link

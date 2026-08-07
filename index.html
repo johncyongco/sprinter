@@ -9,6 +9,14 @@
     <meta name="description" content="Sprinter — a calm, collaborative writing platform where stories evolve through many minds. Someone is always waiting for your next sentence." />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Sprinter — Continue Someone's Thought</title>
+    <script>
+      try {
+        var saved = JSON.parse(localStorage.getItem("sprinter-ui") || "null");
+        var theme = saved && saved.state && saved.state.theme;
+        var dark = theme === "dark" || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

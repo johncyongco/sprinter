@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Tags } from "lucide-react";
 import { getCommunities } from "@/services/communities";
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Avatar } from "@/components/ui/Avatar";
 import { authorById } from "@/services/mock";
@@ -21,12 +20,6 @@ export default function CommunitiesPage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-12"
     >
-      <SectionHeading
-        eyebrow="Community"
-        title="Writing circles"
-        subtitle="Small rooms for writers who share a craft. Discussion, challenges, collections, and the featured stories of the season."
-      />
-
       {isLoading ? (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (

@@ -1,4 +1,4 @@
-import { VAULT, VAULT_EXTRA, STORIES, delay, wordById } from "./mock";
+import { VAULT, VAULT_EXTRA, STORIES, delay, wordById, persistLibrary } from "./mock";
 import type { BeautifulWord, WordCategory } from "@/types";
 
 export interface WordRelation {
@@ -37,6 +37,7 @@ export async function createWord(input: CreateWordInput): Promise<BeautifulWord>
     related: [],
   };
   VAULT_EXTRA.push(word);
+  persistLibrary();
   return word;
 }
 

@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import { getCollections, getCollectionStories, getCurator } from "@/services/communities";
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Modal } from "@/components/ui/Modal";
 import { StoryCard } from "@/components/story/StoryCard";
@@ -35,12 +34,6 @@ export default function CollectionsPage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-12"
     >
-      <SectionHeading
-        eyebrow="Collections"
-        title="Shelves made by hand"
-        subtitle="Curated lists from writers and communities — Cathedrals, Hope, Ocean, Letters Never Sent, and more."
-      />
-
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (

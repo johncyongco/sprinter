@@ -49,13 +49,7 @@ export default function NotificationsPage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="max-w-3xl mx-auto space-y-10"
     >
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="space-y-4">
-          <p className="uppercase tracking-[0.25em] text-xs text-gold font-semibold">Notifications</p>
-          <h1 className="font-display text-[3.5rem] leading-[0.95] tracking-[-0.05em] max-sm:text-[2.6rem]">
-            The news from the library
-          </h1>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-6">
         <button
           type="button"
           onClick={() => markAll.mutate()}

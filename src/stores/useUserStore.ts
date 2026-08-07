@@ -96,7 +96,17 @@ export const useUserStore = create<UserState>()(
           },
         })),
       updateProfile: (patch) =>
-        set((s) => (s.user ? { user: { ...s.user, ...patch } } : {})),
+        set((s) =>
+          s.user
+            ? {
+                user: {
+                  ...s.user,
+                  ...patch,
+                  ...(patch.penName ? { avatar: initials(patch.penName) } : {}),
+                },
+              }
+            : {},
+        ),
       signOut: () => set({ user: null, onboarded: false }),
     }),
     {

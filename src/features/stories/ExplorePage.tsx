@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   SlidersHorizontal,
   Search,
@@ -11,8 +11,12 @@ import {
   MessageSquareHeart,
   Users,
   ListMusic,
+  Loader2,
+  ChevronDown,
+  BookMarked,
+  ArrowUpRight,
 } from "lucide-react";
-import { EMPTY_FILTERS, getStoriesByFilter, type StoryFilters, type SortKey } from "@/services/stories";
+import { EMPTY_FILTERS, getStoriesByFilter, getStoryCount, type StoryFilters, type SortKey } from "@/services/stories";
 import { getVault } from "@/services/words";
 import { getAnthologies } from "@/services/anthologies";
 import { getCommunities } from "@/services/communities";
@@ -20,12 +24,11 @@ import { getAllThoughts } from "@/services/thoughts";
 import { authorById } from "@/services/mock";
 import type { Emotion, Genre, Perspective, Theme, CompletionStatus, BeautifulWord, Anthology, Community, Thought } from "@/types";
 import { StoryCard } from "@/components/story/StoryCard";
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Tabs } from "@/components/ui/Tabs";
 import { Avatar } from "@/components/ui/Avatar";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { cn } from "@/lib/cn";
 
 const GENRES: Genre[] = [
@@ -49,27 +52,104 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "longest", label: "Longest" },
 ];
 
-const TAB_ITEMS = [
-  { id: "stories", label: "Stories" },
-  { id: "words", label: "Words" },
-  { id: "anthologies", label: "Anthologies" },
-  { id: "communities", label: "Communities" },
-  { id: "thoughts", label: "Thoughts" },
-  { id: "motifs", label: "Motifs & Themes" },
-];
-
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
-export default function ExplorePage() {
-  const [tab, setTab] = useState("stories");
-  const [themeFilter, setThemeFilter] = useState<Theme[]>([]);
+interface CategoryDef {
+  id: string;
+  to: string;
+  icon: typeof BookOpen;
+  title: string;
+  tagline: string;
+  description: string;
+  tint: string;
+  glow: string;
+  count?: number;
+  countLabel?: string;
+}
 
-  const openTheme = (theme: Theme) => {
-    setThemeFilter([theme]);
-    setTab("stories");
-  };
+export default function ExplorePage() {
+  const storiesCount = useQuery({ queryKey: ["stories", "count"], queryFn: getStoryCount });
+  const words = useQuery({ queryKey: ["vault", "count"], queryFn: getVault });
+  const anthologies = useQuery({ queryKey: ["anthologies", "count"], queryFn: getAnthologies });
+  const communities = useQuery({ queryKey: ["communities", "count"], queryFn: getCommunities });
+  const thoughts = useQuery({ queryKey: ["thoughts", "count"], queryFn: getAllThoughts });
+
+  const categories: CategoryDef[] = [
+    {
+      id: "stories",
+      to: "/explore/stories",
+      icon: BookOpen,
+      title: "Stories",
+      tagline: "Seeds & continuations",
+      description: "Openings waiting for a next line. Search, filter by genre, emotion or theme, and pick up a thread that asks to be continued.",
+      tint: "rgba(95,115,132,0.16)",
+      glow: "rgba(95,115,132,0.22)",
+      count: storiesCount.data,
+      countLabel: "stories",
+    },
+    {
+      id: "words",
+      to: "/explore/words",
+      icon: Feather,
+      title: "Words",
+      tagline: "The vault",
+      description: "Beautiful words carried through the community — their meanings, how often they are used, and the stories they inhabit.",
+      tint: "rgba(184,155,103,0.16)",
+      glow: "rgba(184,155,103,0.22)",
+      count: words.data?.length,
+      countLabel: "words",
+    },
+    {
+      id: "anthologies",
+      to: "/explore/anthologies",
+      icon: BookMarked,
+      title: "Anthologies",
+      tagline: "Seasons gathered",
+      description: "The season's best stories, bound into a single collection by the editors. Read it cover to cover.",
+      tint: "rgba(123,146,116,0.16)",
+      glow: "rgba(123,146,116,0.22)",
+      count: anthologies.data?.length,
+      countLabel: "anthologies",
+    },
+    {
+      id: "communities",
+      to: "/explore/communities",
+      icon: Users,
+      title: "Communities",
+      tagline: "Writing circles",
+      description: "Small rooms for writers who share a craft. Gather, trade seeds, and keep each other honest.",
+      tint: "rgba(198,156,90,0.16)",
+      glow: "rgba(198,156,90,0.22)",
+      count: communities.data?.length,
+      countLabel: "circles",
+    },
+    {
+      id: "thoughts",
+      to: "/explore/thoughts",
+      icon: MessageSquareHeart,
+      title: "Thoughts",
+      tagline: "Margin notes",
+      description: "Quieter than comments, closer to the text — lines and questions readers leave beside a story someone is still writing.",
+      tint: "rgba(181,106,106,0.15)",
+      glow: "rgba(181,106,106,0.20)",
+      count: thoughts.data?.length,
+      countLabel: "thoughts",
+    },
+    {
+      id: "motifs",
+      to: "/explore/motifs",
+      icon: ListMusic,
+      title: "Motifs & Themes",
+      tagline: "The strands",
+      description: "The themes that stitch Sprinter together. Open one and surf every story that carries it.",
+      tint: "rgba(184,155,103,0.16)",
+      glow: "rgba(184,155,103,0.22)",
+      count: THEMES.length,
+      countLabel: "themes",
+    },
+  ];
 
   return (
     <motion.div
@@ -78,38 +158,69 @@ export default function ExplorePage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-10"
     >
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <SectionHeading
-          eyebrow="The library"
-          title="Explore"
-          subtitle="Everything waiting to be discovered — stories, beautiful words, anthologies, writing circles, margin thoughts, and the motifs that stitch them together."
-          className="mb-0"
-        />
-      </div>
-
-      <div className="overflow-x-auto pb-1 -mx-1 px-1">
-        <Tabs items={TAB_ITEMS} active={tab} onChange={setTab} className="whitespace-nowrap" />
-      </div>
-
-      <div className="space-y-12">
-        {tab === "stories" && <StoriesView themeFilter={themeFilter} />}
-        {tab === "words" && <WordsView />}
-        {tab === "anthologies" && <AnthologiesView />}
-        {tab === "communities" && <CommunitiesView />}
-        {tab === "thoughts" && <ThoughtsView />}
-        {tab === "motifs" && <MotifsThemesView onOpenTheme={openTheme} />}
+      <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
+        {categories.map((category, i) => (
+          <CategoryCard key={category.id} category={category} index={i} />
+        ))}
       </div>
     </motion.div>
   );
 }
 
-function StoriesView({ themeFilter }: { themeFilter: Theme[] }) {
-  const [filters, setFilters] = useState<StoryFilters>({ ...EMPTY_FILTERS });
+function CategoryCard({ category, index }: { category: CategoryDef; index: number }) {
+  const Icon = category.icon;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, delay: Math.min(index * 0.06, 0.35), ease: [0.22, 1, 0.36, 1] }}
+      className="mb-5 break-inside-avoid"
+    >
+      <Link
+        to={category.to}
+        className="group relative flex h-full flex-col overflow-hidden rounded-[32px] border border-border/70 bg-card p-8 shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover"
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+          style={{
+            background: `radial-gradient(420px 260px at 90% -10%, ${category.glow}, transparent 60%), linear-gradient(165deg, ${category.tint} 0%, transparent 55%)`,
+          }}
+        />
+        <div className="relative flex items-center justify-between">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/10 text-gold">
+            <Icon className="h-5 w-5" strokeWidth={1.5} />
+          </span>
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
+            Open <ArrowUpRight className="h-4 w-4" />
+          </span>
+        </div>
+        <h3 className="relative mt-6 font-display text-3xl leading-none tracking-[-0.03em]">{category.title}</h3>
+        <p className="relative mt-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{category.tagline}</p>
+        <p className="relative mt-4 text-sm leading-relaxed text-secondary">{category.description}</p>
+        {category.count != null && (
+          <span className="relative mt-6 inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-primary">
+            {category.count.toLocaleString()} {category.countLabel}
+          </span>
+        )}
+      </Link>
+    </motion.div>
+  );
+}
+
+export function StoriesView() {
+  const [searchParams] = useSearchParams();
+  const urlTheme = searchParams.get("theme") as Theme | null;
+  const [filters, setFilters] = useState<StoryFilters>(() => ({
+    ...EMPTY_FILTERS,
+    themes: urlTheme ? [urlTheme] : [],
+  }));
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const debouncedQuery = useDebounce(query.trim().toLowerCase(), 300);
 
-  const applied = { ...filters, themes: [...new Set([...filters.themes, ...themeFilter])], query: debouncedQuery };
+  const applied = { ...filters, query: debouncedQuery };
 
   const result = useInfiniteQuery({
     queryKey: ["stories", "explore", applied],
@@ -123,26 +234,58 @@ function StoriesView({ themeFilter }: { themeFilter: Theme[] }) {
     filters.genres.length + filters.emotions.length + filters.themes.length +
     filters.perspectives.length + filters.statuses.length;
 
+  const sentinelRef = useInfiniteScroll(
+    () => {
+      if (result.hasNextPage && !result.isFetchingNextPage) result.fetchNextPage();
+    },
+    Boolean(result.hasNextPage && !result.isFetchingNextPage),
+  );
+
   return (
-    <div className="space-y-10">
-      <div className="flex flex-wrap items-end justify-between gap-8">
-        <div className="relative w-full lg:w-80">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary/70" />
+    <div className="space-y-8">
+      {urlTheme && (
+        <p className="text-sm text-secondary">
+          Surfing every story that carries the theme{" "}
+          <span className="font-semibold text-gold">{urlTheme}</span>.{" "}
+          <Link to="/explore/stories" className="font-semibold text-accent underline-offset-4 hover:underline">
+            Clear
+          </Link>
+        </p>
+      )}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 sm:max-w-sm">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary/70 pointer-events-none" />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search stories…"
             aria-label="Search stories"
-            className="h-14 w-full rounded-full bg-white dark:bg-card border border-border pl-11 pr-5 text-sm shadow-sm outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 transition-all"
+            className="h-12 w-full rounded-full bg-white dark:bg-card border border-border pl-11 pr-11 text-sm shadow-sm outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/30 transition-all"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+              className="absolute right-4 top-1/2 -translate-y-1/2 grid h-6 w-6 place-items-center rounded-full text-secondary transition hover:text-primary"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 w-full lg:w-auto">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowFilters((s) => !s)}
-            className="flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold transition hover:border-accent/30"
+            className={cn(
+              "flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-all duration-300",
+              showFilters || activeCount > 0
+                ? "border-primary bg-primary text-background"
+                : "border-border bg-card text-secondary hover:text-primary hover:border-accent/30",
+            )}
             aria-expanded={showFilters}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -154,55 +297,52 @@ function StoriesView({ themeFilter }: { themeFilter: Theme[] }) {
             )}
           </button>
 
-          <div className="flex items-center gap-2 overflow-x-auto">
-            <span className="text-sm text-secondary hidden sm:inline">Sort by</span>
-            <div className="flex flex-wrap gap-2">
+          <label className="relative">
+            <span className="sr-only">Sort by</span>
+            <select
+              value={filters.sort}
+              onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value as SortKey }))}
+              className="h-12 appearance-none rounded-full border border-border bg-card pl-5 pr-11 text-sm font-medium text-primary outline-none transition focus:ring-2 focus:ring-accent/20 focus:border-accent/40 cursor-pointer hover:border-accent/30"
+            >
               {SORTS.map((s) => (
-                <button
-                  key={s.key}
-                  type="button"
-                  onClick={() => setFilters((f) => ({ ...f, sort: s.key }))}
-                  className={cn(
-                    "rounded-full border px-4 py-2 text-[13px] font-medium whitespace-nowrap transition-colors",
-                    filters.sort === s.key
-                      ? "border-primary bg-primary text-background"
-                      : "border-border bg-card text-secondary hover:text-primary",
-                  )}
-                >
+                <option key={s.key} value={s.key}>
                   {s.label}
-                </button>
+                </option>
               ))}
-            </div>
-          </div>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary" />
+          </label>
         </div>
       </div>
 
-      {showFilters && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden"
-        >
-          <div className="rounded-[28px] border border-border bg-surface p-8 space-y-8">
-            <FilterRow label="Genre" options={GENRES} selected={filters.genres} onToggle={(g) => setFilters((f) => ({ ...f, genres: toggle(f.genres, g as Genre) }))} />
-            <FilterRow label="Emotion" options={EMOTIONS} selected={filters.emotions} onToggle={(e) => setFilters((f) => ({ ...f, emotions: toggle(f.emotions, e as Emotion) }))} />
-            <FilterRow label="Theme" options={THEMES} selected={filters.themes} onToggle={(t) => setFilters((f) => ({ ...f, themes: toggle(f.themes, t as Theme) }))} />
-            <FilterRow label="Perspective" options={PERSPECTIVES} selected={filters.perspectives} onToggle={(p) => setFilters((f) => ({ ...f, perspectives: toggle(f.perspectives, p as Perspective) }))} />
-            <FilterRow label="Completion" options={STATUSES} selected={filters.statuses} onToggle={(s) => setFilters((f) => ({ ...f, statuses: toggle(f.statuses, s as CompletionStatus) }))} />
-            {activeCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setFilters((f) => ({ ...f, genres: [], emotions: [], themes: [], perspectives: [], statuses: [] }))}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:text-danger transition-colors"
-              >
-                <X className="h-4 w-4" /> Clear all filters
-              </button>
-            )}
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence initial={false}>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="rounded-[28px] border border-border bg-surface p-8 space-y-8">
+              <FilterRow label="Genre" options={GENRES} selected={filters.genres} onToggle={(g) => setFilters((f) => ({ ...f, genres: toggle(f.genres, g as Genre) }))} />
+              <FilterRow label="Emotion" options={EMOTIONS} selected={filters.emotions} onToggle={(e) => setFilters((f) => ({ ...f, emotions: toggle(f.emotions, e as Emotion) }))} />
+              <FilterRow label="Theme" options={THEMES} selected={filters.themes} onToggle={(t) => setFilters((f) => ({ ...f, themes: toggle(f.themes, t as Theme) }))} />
+              <FilterRow label="Perspective" options={PERSPECTIVES} selected={filters.perspectives} onToggle={(p) => setFilters((f) => ({ ...f, perspectives: toggle(f.perspectives, p as Perspective) }))} />
+              <FilterRow label="Completion" options={STATUSES} selected={filters.statuses} onToggle={(s) => setFilters((f) => ({ ...f, statuses: toggle(f.statuses, s as CompletionStatus) }))} />
+              {activeCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilters((f) => ({ ...f, genres: [], emotions: [], themes: [], perspectives: [], statuses: [] }))}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:text-danger transition-colors"
+                >
+                  <X className="h-4 w-4" /> Clear all filters
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {result.isLoading ? (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
@@ -217,30 +357,27 @@ function StoriesView({ themeFilter }: { themeFilter: Theme[] }) {
           description="This shelf is empty — for now. Try clearing a filter or two, or seed a new story yourself."
         />
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
           {stories.map((story, i) => (
-            <StoryCard key={story.id} story={story} index={i} />
+            <div key={story.id} className="mb-5 break-inside-avoid">
+              <StoryCard story={story} index={i} />
+            </div>
           ))}
         </div>
       )}
 
-      {result.hasNextPage && (
-        <div className="flex justify-center pt-4">
-          <button
-            type="button"
-            onClick={() => result.fetchNextPage()}
-            disabled={result.isFetchingNextPage}
-            className="rounded-full bg-primary text-background px-8 py-4 text-sm font-semibold transition hover:scale-[1.03] active:scale-95 disabled:opacity-50"
-          >
-            {result.isFetchingNextPage ? "Turning the page…" : "Load more stories"}
-          </button>
-        </div>
-      )}
+      <div ref={sentinelRef} className="flex min-h-16 items-center justify-center">
+        {result.isFetchingNextPage && (
+          <span className="flex items-center gap-2 text-sm text-secondary">
+            <Loader2 className="h-4 w-4 animate-spin text-gold" /> Turning the page…
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
-function WordsView() {
+export function WordsView() {
   const { data: words, isLoading } = useQuery({ queryKey: ["vault"], queryFn: getVault });
   const [query, setQuery] = useState("");
   const debounced = useDebounce(query.trim().toLowerCase(), 200);
@@ -276,9 +413,11 @@ function WordsView() {
           description="This word hasn't found its way into the vault yet. It may be waiting to be carried by your next sentence."
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
           {filtered.map((w, i) => (
-            <WordCard key={w.id} word={w} index={i} />
+            <div key={w.id} className="mb-5 break-inside-avoid">
+              <WordCard word={w} index={i} />
+            </div>
           ))}
         </div>
       )}
@@ -340,7 +479,7 @@ function WordCard({ word, index }: { word: BeautifulWord; index: number }) {
   );
 }
 
-function AnthologiesView() {
+export function AnthologiesView() {
   const { data: anthologies, isLoading } = useQuery({ queryKey: ["anthologies"], queryFn: getAnthologies });
 
   return (
@@ -358,9 +497,11 @@ function AnthologiesView() {
           description="The editors gather the season's best stories into a single collection. The first one is on its way."
         />
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
           {anthologies.map((a, i) => (
-            <AnthologyCard key={a.id} anthology={a} index={i} />
+            <div key={a.id} className="mb-5 break-inside-avoid">
+              <AnthologyCard anthology={a} index={i} />
+            </div>
           ))}
         </div>
       )}
@@ -408,7 +549,7 @@ function AnthologyCard({ anthology, index }: { anthology: Anthology; index: numb
   );
 }
 
-function CommunitiesView() {
+export function CommunitiesView() {
   const { data: communities, isLoading } = useQuery({ queryKey: ["communities"], queryFn: getCommunities });
 
   return (
@@ -426,9 +567,11 @@ function CommunitiesView() {
           description="Circles are small rooms for writers who share a craft. The first ones will gather soon."
         />
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
           {communities.map((c, i) => (
-            <CommunityCard key={c.id} community={c} index={i} />
+            <div key={c.id} className="mb-5 break-inside-avoid">
+              <CommunityCard community={c} index={i} />
+            </div>
           ))}
         </div>
       )}
@@ -491,7 +634,7 @@ function CommunityCard({ community, index }: { community: Community; index: numb
   );
 }
 
-function ThoughtsView() {
+export function ThoughtsView() {
   const { data: thoughts, isLoading } = useQuery({ queryKey: ["thoughts", "all"], queryFn: getAllThoughts });
 
   return (
@@ -514,9 +657,11 @@ function ThoughtsView() {
           description="The first margin note is a line, a question, a small observation left beside a story someone is still writing."
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="columns-1 gap-5 sm:columns-2">
           {thoughts.map((t, i) => (
-            <ThoughtCard key={t.id} thought={t} index={i} />
+            <div key={t.id} className="mb-5 break-inside-avoid">
+              <ThoughtCard thought={t} index={i} />
+            </div>
           ))}
         </div>
       )}
@@ -551,7 +696,8 @@ function ThoughtCard({ thought, index }: { thought: Thought; index: number }) {
   );
 }
 
-function MotifsThemesView({ onOpenTheme }: { onOpenTheme: (theme: Theme) => void }) {
+export function MotifsThemesView() {
+  const navigate = useNavigate();
   return (
     <div className="space-y-8">
       <p className="text-sm text-secondary leading-relaxed max-w-2xl">
@@ -568,7 +714,7 @@ function MotifsThemesView({ onOpenTheme }: { onOpenTheme: (theme: Theme) => void
           >
             <button
               type="button"
-              onClick={() => onOpenTheme(theme)}
+              onClick={() => navigate(`/explore/stories?theme=${encodeURIComponent(theme)}`)}
               className="group flex h-full w-full flex-col gap-2 rounded-[28px] border border-border/70 bg-card p-7 text-left shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover"
             >
               <ListMusic className="h-5 w-5 text-gold" strokeWidth={1.5} />

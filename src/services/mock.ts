@@ -12,6 +12,7 @@ import type {
   Genre,
   Thought,
 } from "@/types";
+import { useUserStore } from "@/stores/useUserStore";
 
 export { delay } from "./client";
 
@@ -109,6 +110,8 @@ export const STORIES: Story[] = SEEDS.map((s, i) => {
 
 /* ---------- branch tree (continuations) ---------- */
 
+export const MY_SEEDS: Story[] = [];
+
 interface SeedNode {
   story: number;
   id: string;
@@ -181,7 +184,71 @@ export const CRITIQUES: Critique[] = CRITIQUE_SEEDS.map((c, i) => {
 
 /* ---------- challenges ---------- */
 
-export const CHALLENGES: Challenge[] = [];
+export const CHALLENGES: Challenge[] = [
+  {
+    id: "ch-1",
+    kind: "Daily Sprint",
+    title: "One Hundred Quiet Words",
+    prompt: "Write 100 words about a small mercy someone almost didn't notice.",
+    wordLimit: 100,
+    startsAt: "2026-08-05",
+    endsAt: "2026-08-06",
+    participants: 342,
+    featuredStoryId: "st-110",
+  },
+  {
+    id: "ch-2",
+    kind: "Weekly Prompt",
+    title: "Thresholds",
+    prompt: "Continue this story in under 300 words. Begin at the exact moment a character steps across a line they said they never would.",
+    wordLimit: 300,
+    startsAt: "2026-08-01",
+    endsAt: "2026-08-08",
+    participants: 587,
+    featuredStoryId: "st-100",
+  },
+  {
+    id: "ch-3",
+    kind: "Relay",
+    title: "The Exchange",
+    prompt: "A living relay. One writer opens, the next continues. Twenty hours, twenty hands, one story.",
+    startsAt: "2026-07-27",
+    endsAt: "2026-08-09",
+    participants: 19,
+    featuredStoryId: "st-111",
+  },
+  {
+    id: "ch-4",
+    kind: "Timed",
+    title: "Twenty-Minute Dusk",
+    prompt: "You have twenty minutes. The light is leaving. Write the thing you'd write if the light were leaving.",
+    wordLimit: 400,
+    startsAt: "2026-08-03",
+    endsAt: "2026-08-07",
+    participants: 208,
+    qualityNote: "Judged on the last line.",
+  },
+  {
+    id: "ch-5",
+    kind: "Community",
+    title: "Catholic Writers — The Mercy Thread",
+    prompt: "Open a story with the line 'Mercy is a door with no handle.' Carry it somewhere the door opens.",
+    startsAt: "2026-07-30",
+    endsAt: "2026-08-12",
+    participants: 96,
+    featuredStoryId: "st-104",
+  },
+  {
+    id: "ch-6",
+    kind: "Daily Sprint",
+    title: "Six Words, Exactly",
+    prompt: "A whole story in six words. No more. No less. (Hint: the counting is part of the craft.)",
+    wordLimit: 6,
+    startsAt: "2026-08-06",
+    endsAt: "2026-08-07",
+    participants: 415,
+  },
+];
 
 /* ---------- anthologies ---------- */
 
@@ -232,11 +299,11 @@ export function critiquesFor(storyId: string): Critique[] {
 }
 
 export function storyById(id: string): Story | undefined {
-  return STORIES.find((s) => s.id === id);
+  return STORIES.find((s) => s.id === id) ?? MY_SEEDS.find((s) => s.id === id);
 }
 
 export function storyBySlug(slug: string): Story | undefined {
-  return STORIES.find((s) => s.slug === slug);
+  return STORIES.find((s) => s.slug === slug) ?? MY_SEEDS.find((s) => s.slug === slug);
 }
 
 export const WEEKLY_PROMPT = {
@@ -252,3 +319,83 @@ export const RELAY = {
   hoursRemaining: 0,
   current: "",
 };
+
+/* ============================================================
+   Local persistence
+   Everything a writer contributes is saved on this device and
+   hydrated back on the next visit.
+   ============================================================ */
+
+const STORAGE_KEYS = {
+  stories: "sprinter-stories",
+  nodes: "sprinter-nodes",
+  critiques: "sprinter-critiques",
+  words: "sprinter-words",
+  thoughts: "sprinter-thoughts",
+  seeds: "sprinter-my-seeds",
+} as const;
+
+function loadList<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveList(key: string, list: unknown[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch {
+    /* storage unavailable — content stays in memory for the session */
+  }
+}
+
+export function persistLibrary(): void {
+  saveList(STORAGE_KEYS.stories, STORIES);
+  saveList(STORAGE_KEYS.nodes, NODES);
+  saveList(STORAGE_KEYS.critiques, CRITIQUES);
+  saveList(STORAGE_KEYS.words, VAULT_EXTRA);
+  saveList(STORAGE_KEYS.thoughts, THOUGHTS);
+  saveList(STORAGE_KEYS.seeds, MY_SEEDS);
+}
+
+export function getWrittenLibrary() {
+  return {
+    stories: [...MY_SEEDS, ...STORIES].filter(
+      (s) => s.seedAuthorId === useUserStore.getState().user?.id,
+    ),
+    nodes: NODES.filter((n) => n.authorId === useUserStore.getState().user?.id),
+    critiques: CRITIQUES.filter((c) => c.authorId === useUserStore.getState().user?.id),
+    words: [...VAULT_EXTRA],
+    thoughts: THOUGHTS.filter((t) => t.authorId === useUserStore.getState().user?.id),
+  };
+}
+
+/* hydrate user-written content so it survives a refresh */
+const savedStories = loadList<Story>(STORAGE_KEYS.stories);
+const savedNodes = loadList<BranchNode>(STORAGE_KEYS.nodes);
+const savedCritiques = loadList<Critique>(STORAGE_KEYS.critiques);
+const savedWords = loadList<BeautifulWord>(STORAGE_KEYS.words);
+const savedThoughts = loadList<Thought>(STORAGE_KEYS.thoughts);
+const savedSeeds = loadList<Story>(STORAGE_KEYS.seeds);
+
+if (savedStories.length) STORIES.splice(0, STORIES.length, ...savedStories);
+if (savedNodes.length) NODES.splice(0, NODES.length, ...savedNodes);
+if (savedCritiques.length) CRITIQUES.splice(0, CRITIQUES.length, ...savedCritiques);
+if (savedWords.length) VAULT_EXTRA.splice(0, VAULT_EXTRA.length, ...savedWords);
+if (savedThoughts.length) THOUGHTS.splice(0, THOUGHTS.length, ...savedThoughts);
+if (savedSeeds.length) MY_SEEDS.splice(0, MY_SEEDS.length, ...savedSeeds);
+
+/* keep story counters in sync with hydrated branches */
+for (const story of STORIES) {
+  const nodes = NODES.filter((n) => n.storyId === story.id);
+  const contributors = new Set([story.seedAuthorId, ...nodes.map((n) => n.authorId)]);
+  story.branchCount = nodes.length;
+  story.continuationCount = nodes.length;
+  story.contributorIds = Array.from(contributors);
+  story.critiqueCount = CRITIQUES.filter((c) => c.storyId === story.id).length;
+}

@@ -1,4 +1,4 @@
-import { STORIES, delay, nodesFor, critiquesFor, makeCover } from "./mock";
+import { STORIES, MY_SEEDS, delay, nodesFor, critiquesFor, makeCover, persistLibrary } from "./mock";
 import { useUserStore } from "@/stores/useUserStore";
 import type {
   CompletionStatus,
@@ -43,14 +43,14 @@ export async function getStories(): Promise<Story[]> {
 
 export async function getStory(id: string): Promise<Story> {
   await delay(180);
-  const story = STORIES.find((s) => s.id === id);
+  const story = STORIES.find((s) => s.id === id) ?? MY_SEEDS.find((s) => s.id === id);
   if (!story) throw new Error(`Story not found: ${id}`);
   return { ...story, contributorIds: [...story.contributorIds] };
 }
 
 export async function getStoryBySlug(slug: string): Promise<Story> {
   await delay(180);
-  const story = STORIES.find((s) => s.slug === slug);
+  const story = STORIES.find((s) => s.slug === slug) ?? MY_SEEDS.find((s) => s.slug === slug);
   if (!story) throw new Error(`Story not found: ${slug}`);
   return { ...story, contributorIds: [...story.contributorIds] };
 }
@@ -63,6 +63,13 @@ export interface NewStoryInput {
   themes: Theme[];
   perspective: Perspective;
   pacing: Pacing;
+  body: string;
+  challengeId?: string;
+}
+
+export interface FreeWriteInput {
+  title: string;
+  cover?: string;
   body: string;
 }
 
@@ -109,10 +116,70 @@ export async function createStory(input: NewStoryInput): Promise<Story> {
     critiqueCount: 0,
     isEditorialPick: false,
     isWeeklyPrompt: false,
+    challengeId: input.challengeId,
     excerpt: body.split(/\s+/).slice(0, 42).join(" ") + "…",
   };
-  STORIES.unshift(story);
+  MY_SEEDS.unshift(story);
+  persistLibrary();
   return story;
+}
+
+export async function publishStory(storyId: string): Promise<Story> {
+  await delay(240);
+  const index = MY_SEEDS.findIndex((s) => s.id === storyId);
+  if (index === -1) {
+    const published = STORIES.find((s) => s.id === storyId);
+    if (!published) throw new Error(`Seed not found: ${storyId}`);
+    return { ...published, contributorIds: [...published.contributorIds] };
+  }
+  const [story] = MY_SEEDS.splice(index, 1);
+  STORIES.unshift(story);
+  persistLibrary();
+  return { ...story, contributorIds: [...story.contributorIds] };
+}
+
+export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {
+  await delay(420);
+  const user = useUserStore.getState().user;
+  const body = input.body.trim();
+  const title = input.title.trim();
+  const words = body.replace(/\s+/g, " ").split(" ").filter(Boolean).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const story: Story = {
+    id: `fw-${Date.now()}`,
+    title,
+    slug: slugify(title),
+    cover: input.cover ?? makeCover(title),
+    seedAuthorId: user?.id ?? "a1",
+    genres: ["Literary Fiction"],
+    emotion: ["Stillness"],
+    themes: ["Becoming"],
+    perspective: "First",
+    pacing: "Measured",
+    status: "Seed",
+    createdAt: today,
+    updatedAt: today,
+    body,
+    words,
+    readingMinutes: Math.max(1, Math.round(words / 220)),
+    beautifulWords: [],
+    completion: words >= 60 ? 40 : 20,
+    contributorIds: [],
+    branchCount: 0,
+    continuationCount: 0,
+    critiqueCount: 0,
+    isEditorialPick: false,
+    isWeeklyPrompt: false,
+    excerpt: body.split(/\s+/).slice(0, 42).join(" ") + "…",
+  };
+  MY_SEEDS.unshift(story);
+  persistLibrary();
+  return story;
+}
+
+export async function getStoryCount(): Promise<number> {
+  await delay(120);
+  return STORIES.length;
 }
 
 export async function getStoriesByFilter(

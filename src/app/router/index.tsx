@@ -11,8 +11,10 @@ function lazyPage(loader: Loader): LazyExoticComponent<ComponentType<Record<stri
 
 const HomePage = lazyPage(() => import("@/features/stories/HomePage"));
 const ExplorePage = lazyPage(() => import("@/features/stories/ExplorePage"));
+const ExploreSectionPage = lazyPage(() => import("@/features/stories/ExploreSectionPage"));
 const StoryDetailPage = lazyPage(() => import("@/features/stories/StoryDetailPage"));
 const StartStoryPage = lazyPage(() => import("@/features/stories/StartStoryPage"));
+const WriteAnythingPage = lazyPage(() => import("@/features/stories/WriteAnythingPage"));
 const ContinuePage = lazyPage(() => import("@/features/stories/ContinuePage"));
 const WordVaultPage = lazyPage(() => import("@/features/words/WordVaultPage"));
 const WordDetailPage = lazyPage(() => import("@/features/words/WordDetailPage"));
@@ -38,10 +40,12 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "explore", element: <ExplorePage /> },
+      { path: "explore/:section", element: <ExploreSectionPage /> },
       { path: "words", element: <WordVaultPage /> },
       { path: "words/:wordId", element: <WordDetailPage /> },
       { path: "stories/:slug", element: <StoryDetailPage /> },
       { path: "write", element: <StartStoryPage /> },
+      { path: "write/anything", element: <WriteAnythingPage /> },
       { path: "stories/:slug/continue", element: <ContinuePage /> },
       { path: "stories/:slug/critique", element: <CritiquePage /> },
       { path: "challenges", element: <ChallengesPage /> },

@@ -1,4 +1,4 @@
-import { NODES, STORIES, AUTHORS, delay, nodesFor, authorById } from "./mock";
+import { NODES, STORIES, MY_SEEDS, AUTHORS, delay, nodesFor, authorById, persistLibrary } from "./mock";
 import { useUserStore } from "@/stores/useUserStore";
 import { countWords } from "@/lib/reading";
 import type { BranchNode, ContributionType } from "@/types";
@@ -26,7 +26,7 @@ export async function getNode(nodeId: string): Promise<BranchNode> {
 
 export async function publishContinuation(input: PublishInput): Promise<BranchNode> {
   await delay(420);
-  const story = STORIES.find((s) => s.id === input.storyId);
+  const story = STORIES.find((s) => s.id === input.storyId) ?? MY_SEEDS.find((s) => s.id === input.storyId);
   if (!story) throw new Error("Story not found");
 
   const user = useUserStore.getState().user;
@@ -60,6 +60,8 @@ export async function publishContinuation(input: PublishInput): Promise<BranchNo
     me.stats.continuations += 1;
   }
 
+  persistLibrary();
+
   return node;
 }
 
@@ -83,7 +85,7 @@ function untitledFor(type: ContributionType): string {
 
 export async function getStoryContributors(storyId: string) {
   await delay(120);
-  const story = STORIES.find((s) => s.id === storyId);
+  const story = STORIES.find((s) => s.id === storyId) ?? MY_SEEDS.find((s) => s.id === storyId);
   if (!story) return [];
   return story.contributorIds
     .map((id) => ({ id, author: authorById(id), count: countFor(id, storyId) }))
@@ -100,7 +102,10 @@ export async function getContributionsByAuthor(authorId: string) {
 
 export async function getStoriesByAuthor(authorId: string) {
   await delay(160);
-  const seeded = STORIES.filter((s) => s.seedAuthorId === authorId);
+  const seeded = [
+    ...MY_SEEDS.filter((s) => s.seedAuthorId === authorId),
+    ...STORIES.filter((s) => s.seedAuthorId === authorId),
+  ];
   const contributed = STORIES.filter(
     (s) => s.contributorIds.includes(authorId) && s.seedAuthorId !== authorId,
   );

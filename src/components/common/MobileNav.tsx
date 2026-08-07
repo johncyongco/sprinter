@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Home, Compass, Feather, Trophy, User } from "lucide-react";
+import { WriteChoiceModal } from "@/components/write/WriteChoiceModal";
 import { cn } from "@/lib/cn";
 
 export function MobileNav() {
-  const isWriteActive = useLocation().pathname === "/write";
+  const [writeOpen, setWriteOpen] = useState(false);
+  const isWriteActive = useLocation().pathname.startsWith("/write");
   return (
     <nav
       aria-label="Mobile"
@@ -36,11 +39,12 @@ export function MobileNav() {
           <Compass className="h-5 w-5" strokeWidth={1.75} />
           Explore
         </NavLink>
-        <NavLink
-          to="/write"
+        <button
+          type="button"
+          onClick={() => setWriteOpen(true)}
           aria-label="Write"
           className={cn(
-            "relative flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-colors",
+            "relative flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-colors cursor-pointer",
             isWriteActive ? "text-primary" : "text-gold",
           )}
         >
@@ -53,7 +57,7 @@ export function MobileNav() {
             <Feather className="h-4 w-4" strokeWidth={1.75} />
           </span>
           <span className="mt-5">Write</span>
-        </NavLink>
+        </button>
         <NavLink
           to="/challenges"
           aria-label="Challenges"
@@ -81,6 +85,7 @@ export function MobileNav() {
           Profile
         </NavLink>
       </div>
+      <WriteChoiceModal open={writeOpen} onClose={() => setWriteOpen(false)} />
     </nav>
   );
 }

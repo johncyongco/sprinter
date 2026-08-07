@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Download, BookOpen } from "lucide-react";
 import { getAnthologies } from "@/services/anthologies";
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { exportAnthologyPdf } from "@/lib/pdf";
 import { getStories } from "@/services/stories";
@@ -23,12 +22,6 @@ export default function AnthologiesPage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-12"
     >
-      <SectionHeading
-        eyebrow="Anthologies"
-        title="The seasons, bound"
-        subtitle="Each month the editors gather the best stories, featured continuations, and top critiques into a single collection — ready to read, export, or hold."
-      />
-
       {isLoading ? (
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (

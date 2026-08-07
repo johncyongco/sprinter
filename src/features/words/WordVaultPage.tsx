@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Feather, Search, BookOpen } from "lucide-react";
 import { getVault } from "@/services/words";
-import { SectionHeading } from "@/components/common/SectionHeading";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -26,12 +25,6 @@ export default function WordVaultPage() {
       className="space-y-12"
     >
       <div className="flex flex-wrap items-end justify-between gap-8">
-        <SectionHeading
-          eyebrow="Word Vault"
-          title="Beautiful words"
-          subtitle="Every contribution can attach a word. Each one carries a meaning, a history, and the stories that keep returning to it."
-          className="mb-0"
-        />
         <div className="relative w-full lg:w-80">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary/70" />
           <input

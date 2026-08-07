@@ -11,7 +11,7 @@ export function AppLayout() {
     <div className="min-h-screen bg-background">
       <ScrollToTop />
       <Navbar />
-      <main className="max-w-[1680px] mx-auto px-10 py-10 max-sm:px-4 max-sm:py-6 pb-32 lg:pb-10">
+      <main className="max-w-[1680px] mx-auto px-10 py-10 max-sm:px-4 max-sm:pt-6 max-sm:pb-40 pb-32 lg:pb-10">
         <Suspense fallback={<PageLoader />}>
           <Outlet />
         </Suspense>

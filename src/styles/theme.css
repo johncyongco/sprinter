@@ -9,8 +9,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --color-background: #f6f4ef;
-  --color-surface: #fcfaf7;
+  --color-background: #fffefc;
+  --color-surface: #f7f4ee;
   --color-card: #ffffff;
 
   --color-primary: #1d1d1b;

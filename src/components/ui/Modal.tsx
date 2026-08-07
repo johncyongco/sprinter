@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 
 interface ModalProps {
@@ -25,11 +26,11 @@ export function Modal({ open, onClose, children, className, labelledBy }: ModalP
     };
   }, [open, onClose]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-8"
+          className="fixed inset-0 z-[90] flex justify-center overflow-y-auto overscroll-contain p-4 sm:p-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -39,7 +40,7 @@ export function Modal({ open, onClose, children, className, labelledBy }: ModalP
           aria-labelledby={labelledBy}
         >
           <motion.button
-            className="absolute inset-0 bg-primary/25 backdrop-blur-[2px] cursor-default"
+            className="fixed inset-0 bg-primary/45 backdrop-blur-md cursor-default"
             onClick={onClose}
             aria-label="Close dialog"
             initial={{ opacity: 0 }}
@@ -48,7 +49,7 @@ export function Modal({ open, onClose, children, className, labelledBy }: ModalP
           />
           <motion.div
             className={cn(
-              "relative w-full max-w-2xl max-h-[88vh] overflow-y-auto bg-surface rounded-[30px] border border-border shadow-hover",
+              "relative w-full max-w-2xl max-h-[88vh] overflow-y-auto overscroll-contain bg-surface rounded-[30px] border border-border shadow-hover my-auto",
               className,
             )}
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -68,6 +69,7 @@ export function Modal({ open, onClose, children, className, labelledBy }: ModalP
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

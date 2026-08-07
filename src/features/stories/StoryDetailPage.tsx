@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bookmark,
   Download,
@@ -10,8 +10,9 @@ import {
   Users,
   ArrowLeft,
   Sparkles,
+  Send,
 } from "lucide-react";
-import { getStoryBySlug } from "@/services/stories";
+import { getStoryBySlug, getStories, publishStory } from "@/services/stories";
 import { getBranches } from "@/services/continuations";
 import { getCritiques, getCritiqueStats, CRITIQUE_DIMENSIONS } from "@/services/critiques";
 import { wordById, authorById } from "@/services/mock";
@@ -29,6 +30,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
 import { Markdown } from "@/lib/markdown";
 import { useUIStore } from "@/stores/useUIStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { cn } from "@/lib/cn";
 import type { BranchNode, Critique, Story } from "@/types";
 
@@ -150,6 +152,41 @@ function DesktopWorkspace({
   );
 }
 
+/* ------------------------- publish seed button ------------------------- */
+
+function PublishSeedButton({ story }: { story: Story }) {
+  const me = useUserStore((s) => s.user?.id) ?? "me";
+  const queryClient = useQueryClient();
+  const { data: allStories } = useQuery({
+    queryKey: ["stories"],
+    queryFn: getStories,
+  });
+  const publish = useMutation({
+    mutationFn: () => publishStory(story.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["story", "slug", story.slug] });
+      queryClient.invalidateQueries({ queryKey: ["story", story.id] });
+    },
+  });
+
+  const isOwner = story.seedAuthorId === me;
+  const isPublished = allStories?.some((s) => s.id === story.id) ?? false;
+  if (isPublished || !isOwner) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => publish.mutate()}
+      disabled={publish.isPending}
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 text-[13px] font-semibold text-gold transition hover:bg-gold/20 disabled:opacity-60"
+    >
+      <Send className="h-3.5 w-3.5" strokeWidth={1.75} />
+      {publish.isPending ? "Publishing…" : "Publish to library"}
+    </button>
+  );
+}
+
 /* ------------------------- reading pane ------------------------- */
 
 function ReadingPane({
@@ -248,6 +285,7 @@ function ReadingPane({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <PublishSeedButton story={story} />
           <button
             type="button"
             onClick={() => setBookmarked((b) => !b)}
@@ -505,6 +543,7 @@ function MobileView({
         <Button variant="outline" onClick={() => navigate(`/stories/${story.slug}/critique`)}>
           Critique
         </Button>
+        <PublishSeedButton story={story} />
       </div>
 
       <Tabs

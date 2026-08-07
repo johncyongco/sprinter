@@ -1,4 +1,4 @@
-import { CRITIQUES, STORIES, AUTHORS, delay, critiquesFor } from "./mock";
+import { CRITIQUES, STORIES, AUTHORS, delay, critiquesFor, persistLibrary } from "./mock";
 import { useUserStore } from "@/stores/useUserStore";
 import type { Critique, CritiqueScoreKey } from "@/types";
 
@@ -44,6 +44,7 @@ export async function submitCritique(input: CritiqueInput): Promise<Critique> {
   if (story) story.critiqueCount += 1;
   const me = AUTHORS.find((a) => a.id === "me");
   if (me) me.stats.critiques += 1;
+  persistLibrary();
   return critique;
 }
 

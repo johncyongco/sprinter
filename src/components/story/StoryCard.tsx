@@ -23,11 +23,11 @@ export function StoryCard({
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.4), ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "group relative overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover cursor-pointer",
+        "group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover cursor-pointer",
         className,
       )}
     >
-      <Link to={`/stories/${story.slug}`} className="block focus:outline-none">
+      <Link to={`/stories/${story.slug}`} className="flex h-full flex-col focus:outline-none">
         <div className="relative h-60 w-full overflow-hidden">
           <img
             src={story.cover}
@@ -43,7 +43,7 @@ export function StoryCard({
           )}
         </div>
 
-        <div className="p-7 space-y-5">
+        <div className="flex flex-1 flex-col p-7 space-y-5">
           <div className="flex flex-wrap gap-2">
             {story.genres.slice(0, 2).map((genre) => (
               <span
@@ -75,7 +75,7 @@ export function StoryCard({
             <span className="truncate">{seedAuthor?.penName ?? "A quiet author"}</span>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="mt-auto flex items-center justify-between pt-1">
             <div className="flex items-center gap-4 text-[13px] text-secondary">
               <span className="flex items-center gap-1.5">
                 <GitFork className="h-4 w-4" strokeWidth={1.75} />

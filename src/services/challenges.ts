@@ -11,6 +11,15 @@ export async function getActiveChallenges(): Promise<Challenge[]> {
   return CHALLENGES.filter((c) => c.endsAt >= new Date().toISOString().slice(0, 10));
 }
 
+export async function getChallenge(id: string): Promise<Challenge | undefined> {
+  await delay(120);
+  return CHALLENGES.find((c) => c.id === id);
+}
+
+export function getChallengeEntries(challengeId: string) {
+  return STORIES.filter((s) => s.challengeId === challengeId);
+}
+
 export function getChallengeStory(challenge: Challenge) {
   if (!challenge.featuredStoryId) return undefined;
   return STORIES.find((s) => s.id === challenge.featuredStoryId);

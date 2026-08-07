@@ -5,12 +5,14 @@ import { Logo } from "./Logo";
 import { NAV_LINKS } from "@/app/config/site";
 import { NotificationsBell } from "./NotificationsBell";
 import { ModeToggle } from "./ModeToggle";
+import { WriteChoiceModal } from "@/components/write/WriteChoiceModal";
 import { useUserStore } from "@/stores/useUserStore";
 import { cn } from "@/lib/cn";
 import { Avatar } from "@/components/ui/Avatar";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [writeOpen, setWriteOpen] = useState(false);
   const user = useUserStore((s) => s.user);
   const navigate = useNavigate();
 
@@ -60,7 +62,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden md:block relative">
+          <div className="hidden lg:block relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary/70 pointer-events-none" />
             <input
               type="search"
@@ -72,22 +74,24 @@ export function Navbar() {
           </div>
           <ModeToggle />
           <NotificationsBell />
-          <Link
-            to="/write"
-            className="hidden sm:inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-background transition-all duration-300 hover:shadow-hover hover:-translate-y-px"
+          <button
+            type="button"
+            onClick={() => setWriteOpen(true)}
+            className="hidden lg:inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-background transition-all duration-300 hover:shadow-hover hover:-translate-y-px cursor-pointer"
           >
             <Feather className="h-4 w-4" strokeWidth={1.75} />
             Write
-          </Link>
+          </button>
           <Link
             to="/profile"
             aria-label="Profile"
-            className="ml-1 transition hover:scale-105 duration-300"
+            className="hidden lg:block ml-1 transition hover:scale-105 duration-300"
           >
             <Avatar text={user?.avatar ?? "Y"} size="sm" />
           </Link>
         </div>
       </div>
+      <WriteChoiceModal open={writeOpen} onClose={() => setWriteOpen(false)} />
     </header>
   );
 }

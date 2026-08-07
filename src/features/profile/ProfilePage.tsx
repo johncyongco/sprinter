@@ -2,55 +2,38 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Feather, MessageSquareHeart, GitFork, FileText, Award, ScrollText, Camera, X } from "lucide-react";
+import { Feather, MessageSquareHeart, GitFork, FileText, Award, Bookmark } from "lucide-react";
 import { getProfile } from "@/services/users";
-import { getContributionsByAuthor, getStoriesByAuthor } from "@/services/continuations";
-import { getCritiques } from "@/services/critiques";
 import { getStories } from "@/services/stories";
+import { getWrittenLibrary } from "@/services/mock";
+import { getAnthologies } from "@/services/anthologies";
 import { getCollections } from "@/services/communities";
 import { Tabs } from "@/components/ui/Tabs";
 import { Avatar } from "@/components/ui/Avatar";
-import { CoverPicker } from "@/components/ui/CoverPicker";
-import { StoryCard } from "@/components/story/StoryCard";
-import { CritiqueCard } from "@/components/critique/CritiqueCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { useUserStore } from "@/stores/useUserStore";
-import type { BranchNode, Draft, Story } from "@/types";
+import { ProfileSettings } from "./ProfileSettings";
+import type { Author, Draft } from "@/types";
 
 const TABS = [
-  { id: "stories", label: "Stories" },
-  { id: "contributions", label: "Contributions" },
-  { id: "critiques", label: "Critiques" },
   { id: "drafts", label: "Drafts" },
   { id: "collections", label: "Collections" },
   { id: "achievements", label: "Achievements" },
+  { id: "settings", label: "Settings" },
 ];
 
 export default function ProfilePage() {
-  const [tab, setTab] = useState("stories");
-  const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [tab, setTab] = useState("drafts");
   const user = useUserStore((s) => s.user);
-  const updateProfile = useUserStore((s) => s.updateProfile);
   const me = user?.id ?? "me";
 
   const { data: profile, isLoading } = useQuery({ queryKey: ["profile", me], queryFn: getProfile });
-  const { data: stories } = useQuery({ queryKey: ["profile", me, "stories"], queryFn: () => getStoriesByAuthor(me) });
-  const { data: contributions } = useQuery({ queryKey: ["profile", me, "contributions"], queryFn: () => getContributionsByAuthor(me) });
   const { data: allStories } = useQuery({ queryKey: ["stories"], queryFn: getStories });
-  const { data: myCritiques } = useQuery({
-    queryKey: ["profile", me, "critiques"],
-    queryFn: async () => {
-      const results = await Promise.all(
-        (allStories ?? []).map((s) => getCritiques(s.id)),
-      );
-      return results.flat().filter((c) => c.authorId === me);
-    },
-    enabled: Boolean(allStories),
-  });
   const { data: collections } = useQuery({ queryKey: ["collections"], queryFn: getCollections });
-  const drafts = useDraftStore((s) => Object.values(s.drafts));
+  const draftList = useDraftStore((s) => s.drafts);
+  const drafts = Object.values(draftList);
 
   if (isLoading) {
     return (
@@ -70,8 +53,6 @@ export default function ProfilePage() {
     { icon: MessageSquareHeart, label: "Critiques", value: profile.stats.critiques },
   ];
 
-  const continuedStories = stories?.contributed ?? [];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -79,54 +60,11 @@ export default function ProfilePage() {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-12"
     >
-      <header className="relative overflow-hidden rounded-[42px] border border-border bg-surface">
-        <div className="relative flex flex-col md:flex-row gap-10 p-8 sm:p-14">
-          <div className="relative mx-auto w-full max-w-[300px] shrink-0 md:mx-0">
-            <div className="aspect-[3/4] overflow-hidden rounded-[30px] border border-border shadow-card">
-              {user?.cover ? (
-                <img src={user.cover} alt="Portfolio cover" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-gold/20 via-surface to-accent/15 text-secondary">
-                  <Camera className="h-8 w-8" strokeWidth={1.5} />
-                  <p className="mt-2 text-sm font-medium">Portrait cover</p>
-                </div>
-              )}
-            </div>
-            <div className="absolute right-3 top-3 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowCoverPicker((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-full bg-background/90 px-4 py-2 text-[13px] font-semibold text-primary shadow-card backdrop-blur transition hover:scale-[1.02]"
-              >
-                <Camera className="h-4 w-4" /> {user?.cover ? "Change" : "Add"}
-              </button>
-              {user?.cover && (
-                <button
-                  type="button"
-                  onClick={() => updateProfile({ cover: undefined })}
-                  aria-label="Remove cover"
-                  className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-secondary shadow-card backdrop-blur transition hover:text-danger"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            {showCoverPicker && (
-              <div className="mt-3">
-                <CoverPicker
-                  value={user?.cover ?? null}
-                  onChange={(v) => updateProfile({ cover: v ?? undefined })}
-                  frameClassName="aspect-[3/4]"
-                  label="Upload a portrait cover"
-                  note="Portrait frame — upload any aspect, it will be framed to fit."
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1 space-y-6 min-w-0">
-            <Avatar text={profile.avatar} size="lg" className="ring-4 ring-background" />
-            <div className="space-y-2">
+      <header>
+        <div className="flex flex-col md:flex-row gap-8 md:gap-14">
+          <Avatar text={profile.avatar} size="lg" className="ring-4 ring-background" />
+          <div className="flex-1 space-y-5 min-w-0">
+            <div className="space-y-3">
               <h1 className="font-display text-[3.5rem] leading-[0.95] tracking-[-0.05em] max-sm:text-[2.6rem]">
                 {profile.penName}
               </h1>
@@ -143,12 +81,13 @@ export default function ProfilePage() {
             <p className="text-secondary leading-relaxed max-w-xl">{profile.bio}</p>
             <p className="font-display italic text-gold text-lg">{profile.favoriteLine}</p>
             <div className="flex flex-wrap items-center gap-3">
-              <Link
-                to="/settings"
+              <button
+                type="button"
+                onClick={() => setTab("settings")}
                 className="rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-secondary transition hover:text-primary"
               >
                 Edit profile
-              </Link>
+              </button>
               <span className="text-sm text-secondary">
                 Joined {new Date(profile.joinedAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
               </span>
@@ -156,7 +95,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-4 px-8 pb-8 sm:px-14 sm:pb-14">
+        <div className="mt-8 sm:mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {stats.map((s) => (
             <div key={s.label} className="rounded-3xl border border-border bg-card p-6 space-y-2">
               <s.icon className="h-5 w-5 text-gold" strokeWidth={1.5} />
@@ -170,142 +109,42 @@ export default function ProfilePage() {
       <div className="space-y-10">
         <Tabs items={TABS} active={tab} onChange={setTab} />
 
-        {tab === "stories" && (
-          <div className="space-y-12">
-            <section className="space-y-6">
-              <p className="uppercase tracking-[0.25em] text-xs text-secondary font-semibold">Seeded by you</p>
-              {stories?.seeded.length ? (
-                <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-                  {stories.seeded.map((s, i) => (
-                    <StoryCard key={s.id} story={s} index={i} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  icon={<ScrollText className="h-8 w-8" strokeWidth={1.25} />}
-                  title="No seeds yet"
-                  description="Seed a story and it will grow here — and, with a little luck, in other people's hands."
-                  action={<Link to="/explore" className="rounded-full bg-primary text-background px-6 py-3 text-sm font-semibold transition hover:scale-[1.02]">Find a story to grow</Link>}
-                />
-              )}
-            </section>
-            <section className="space-y-6">
-              <p className="uppercase tracking-[0.25em] text-xs text-secondary font-semibold">You've continued</p>
-              {continuedStories.length ? (
-                <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-                  {continuedStories.map((s, i) => (
-                    <StoryCard key={s.id} story={s} index={i} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-secondary italic">Continue a story and it will appear here.</p>
-              )}
-            </section>
-          </div>
-        )}
-
-        {tab === "contributions" && (
-          <ContributionsTab items={contributions ?? []} />
-        )}
-
-        {tab === "critiques" && (
-          <div className="space-y-6">
-            {myCritiques?.length ? (
-              myCritiques.map((c, i) => (
-                <div key={c.id}>
-                  <CritiqueCard critique={c} index={i} />
-                  <Link
-                    to={`/stories/${allStories?.find((s) => s.id === c.storyId)?.slug ?? ""}`}
-                    className="inline-flex items-center gap-2 mt-3 text-sm font-semibold text-accent hover:text-primary transition-colors"
-                  >
-                    View the story →
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <EmptyState
-                icon={<MessageSquareHeart className="h-8 w-8" strokeWidth={1.25} />}
-                title="No critiques yet"
-                description="Kind, constructive critiques help stories become. Your words will matter here."
-              />
-            )}
-          </div>
-        )}
-
         {tab === "drafts" && (
           <DraftsTab drafts={drafts} slugOf={(id) => allStories?.find((s) => s.id === id)?.slug ?? ""} />
         )}
 
         {tab === "collections" && (
-          <div className="space-y-6">
-            <p className="text-secondary text-sm leading-relaxed max-w-xl">
-              Shelves you have bookmarked or curated. Every story in a collection stays connected to its tree.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {collections?.slice(0, 6).map((c) => (
+          <div className="space-y-4">
+            {collections?.length ? (
+              collections.slice(0, 6).map((c) => (
                 <Link
                   key={c.id}
                   to="/collections"
-                  className="rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
                 >
                   <p className="font-display text-2xl tracking-[-0.02em] leading-tight">{c.title}</p>
-                  <p className="text-[13px] text-secondary mt-2">{c.storyIds.length} stories</p>
+                  <p className="text-[13px] text-secondary">{c.storyIds.length} stories</p>
                 </Link>
-              ))}
-            </div>
+              ))
+            ) : (
+              <EmptyState
+                icon={<Bookmark className="h-8 w-8" strokeWidth={1.25} />}
+                title="No collections yet"
+                description="Shelves you have bookmarked or curated will appear here. Every story in a collection stays connected to its tree."
+              />
+            )}
           </div>
         )}
 
         {tab === "achievements" && (
-          <AchievementsTab />
+          <AchievementsTab stats={profile.stats} />
+        )}
+
+        {tab === "settings" && (
+          <ProfileSettings />
         )}
       </div>
     </motion.div>
-  );
-}
-
-function ContributionsTab({ items }: { items: { node: BranchNode; story: Story | null }[] }) {
-  return (
-    <div className="space-y-4">
-      {items.length === 0 ? (
-        <EmptyState
-          icon={<GitFork className="h-8 w-8" strokeWidth={1.25} />}
-          title="No branches yet"
-          description="Every contribution matters. Your first branch is a sentence away."
-        />
-      ) : (
-        items.map(({ node, story }, i) => (
-          <motion.div
-            key={node.id}
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.3) }}
-            className="rounded-3xl border border-border bg-card p-6 sm:p-7 space-y-3"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-accent/20 bg-accent/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-accent">
-                {node.type}
-              </span>
-              <span className="text-[13px] text-secondary">{node.createdAt}</span>
-              {story && (
-                <span className="text-[13px] text-secondary">in {story.title}</span>
-              )}
-            </div>
-            <p className="font-display text-2xl tracking-[-0.02em]">{node.title}</p>
-            <p className="text-sm text-secondary leading-relaxed line-clamp-2">{node.body}</p>
-            {story && (
-              <Link
-                to={`/stories/${story.slug}`}
-                className="inline-block text-sm font-semibold text-accent hover:text-primary transition-colors"
-              >
-                See it on the tree →
-              </Link>
-            )}
-          </motion.div>
-        ))
-      )}
-    </div>
   );
 }
 
@@ -342,17 +181,62 @@ function DraftsTab({ drafts, slugOf }: { drafts: Draft[]; slugOf: (storyId: stri
   );
 }
 
-function AchievementsTab() {
+function AchievementsTab({ stats }: { stats: Author["stats"] }) {
+  const me = useUserStore((s) => s.user?.id) ?? "me";
+  const { data: written } = useQuery({ queryKey: ["written", me], queryFn: getWrittenLibrary });
+  const { data: allStories } = useQuery({ queryKey: ["stories"], queryFn: getStories });
+  const { data: anthologies } = useQuery({ queryKey: ["anthologies"], queryFn: getAnthologies });
+
+  const nodes = written?.nodes ?? [];
+  const critiqueCount = stats.critiques;
+  const relayEarned = nodes.some((n) =>
+    allStories?.some((s) => s.id === n.storyId && s.challengeId),
+  );
+  const wordCarrierEarned = nodes.some((n) => n.beautifulWordIds.length > 0);
+  const anthologistEarned = anthologies?.some((a) =>
+    a.featuredStoryIds.some((sid) => allStories?.some((s) => s.id === sid && s.seedAuthorId === me)),
+  ) ?? false;
+
   const achievements = [
-    { title: "First Light", description: "Wrote your first sentence on Sprinter.", earned: true },
-    { title: "The Continuing", description: "Grew a branch from another writer's story.", earned: true },
-    { title: "Kind Critic", description: "Left a constructive critique.", earned: true },
-    { title: "Relay Runner", description: "Carried a relay story for a full hand.", earned: false },
-    { title: "Word Carrier", description: "Attached a beautiful word to a contribution.", earned: false },
-    { title: "Anthologist", description: "Featured in a monthly anthology.", earned: false },
+    {
+      title: "First Light",
+      description: "Wrote your first piece on Sprinter.",
+      earned: stats.storiesStarted > 0 || (written?.stories.length ?? 0) > 0,
+    },
+    {
+      title: "The Continuing",
+      description: "Grew a branch from another writer's story.",
+      earned: stats.continuations > 0 || nodes.length > 0,
+    },
+    {
+      title: "Kind Critic",
+      description: "Left a constructive critique.",
+      earned: critiqueCount > 0,
+    },
+    {
+      title: "Relay Runner",
+      description: "Carried a relay story toward the goal.",
+      earned: relayEarned,
+    },
+    {
+      title: "Word Carrier",
+      description: "Attached a beautiful word to a contribution.",
+      earned: wordCarrierEarned,
+    },
+    {
+      title: "Anthologist",
+      description: "Featured in a monthly anthology.",
+      earned: anthologistEarned,
+    },
   ];
+
+  const earnedCount = achievements.filter((a) => a.earned).length;
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-4">
+      <p className="text-sm text-secondary">
+        {earnedCount} of {achievements.length} earned
+      </p>
       {achievements.map((a, i) => (
         <motion.div
           key={a.title}
@@ -360,11 +244,16 @@ function AchievementsTab() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: i * 0.05 }}
-          className={`rounded-3xl border p-6 space-y-3 ${a.earned ? "border-gold/30 bg-gold/5" : "border-border bg-card opacity-70"}`}
+          className={`flex flex-wrap items-center gap-5 rounded-3xl border p-6 ${a.earned ? "border-gold/30 bg-gold/5" : "border-border bg-card opacity-70"}`}
         >
-          <Award className={`h-5 w-5 ${a.earned ? "text-gold" : "text-secondary"}`} strokeWidth={1.5} />
-          <p className="font-display text-2xl tracking-[-0.02em]">{a.title}</p>
-          <p className="text-sm text-secondary leading-relaxed">{a.description}</p>
+          <Award className={`h-5 w-5 shrink-0 ${a.earned ? "text-gold" : "text-secondary"}`} strokeWidth={1.5} />
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="font-display text-2xl tracking-[-0.02em]">{a.title}</p>
+            <p className="text-sm text-secondary leading-relaxed">{a.description}</p>
+          </div>
+          <span className={`text-[13px] font-semibold ${a.earned ? "text-gold" : "text-secondary"}`}>
+            {a.earned ? "Earned" : "Locked"}
+          </span>
         </motion.div>
       ))}
     </div>

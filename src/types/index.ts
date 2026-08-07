@@ -131,6 +131,7 @@ export interface Story {
   critiqueCount: number;
   isEditorialPick: boolean;
   isWeeklyPrompt: boolean;
+  challengeId?: string;
   excerpt: string;
 }
 

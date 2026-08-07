@@ -5,15 +5,16 @@ import type { Author } from "@/types";
 export async function getProfile(): Promise<Author> {
   await delay(120);
   const profile = useUserStore.getState().user;
-  const base = AUTHORS.find((a) => a.id === "me") ?? AUTHORS[AUTHORS.length - 1];
-  if (!profile) return base;
+  const base = AUTHORS.find((a) => a.id === "me") ?? AUTHORS[AUTHORS.length - 1] ?? null;
   return {
-    ...base,
-    penName: profile.penName,
-    avatar: profile.avatar,
-    bio: profile.bio || base.bio,
-    favoriteLine: profile.favoriteLine || base.favoriteLine,
-    genres: profile.genres.length ? profile.genres : base.genres,
+    id: "me",
+    penName: profile?.penName || base?.penName || "Guest",
+    avatar: profile?.avatar || base?.avatar || "G",
+    bio: profile?.bio || base?.bio || "",
+    favoriteLine: profile?.favoriteLine || base?.favoriteLine || "",
+    genres: profile && profile.genres.length ? profile.genres : (base?.genres ?? []),
+    joinedAt: base?.joinedAt ?? new Date().toISOString().slice(0, 10),
+    stats: base?.stats ?? { storiesStarted: 0, continuations: 0, wordsAdded: 0, critiques: 0 },
   };
 }
 

@@ -12,7 +12,7 @@ const RESOURCES = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/70 bg-surface/60 mt-24 max-lg:mb-24">
+    <footer className="border-t border-border/70 bg-surface/60 mt-24 max-lg:mb-24 max-lg:hidden">
       <div className="max-w-[1680px] mx-auto px-10 py-16 max-sm:px-4">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div className="space-y-5">
