@@ -12,15 +12,18 @@ interface TabsProps {
   active: string;
   onChange: (id: string) => void;
   className?: string;
+  /** Make the tabs stretch full-width with equal-sized buttons. */
+  equal?: boolean;
 }
 
-export function Tabs({ items, active, onChange, className }: TabsProps) {
+export function Tabs({ items, active, onChange, className, equal }: TabsProps) {
   return (
     <div
       role="tablist"
       aria-label="Tabs"
       className={cn(
         "inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1.5",
+        equal && "grid w-full",
         className,
       )}
     >
@@ -35,6 +38,7 @@ export function Tabs({ items, active, onChange, className }: TabsProps) {
             onClick={() => onChange(item.id)}
             className={cn(
               "relative rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300 ease-[var(--ease-fluid)]",
+              equal && "flex-1 justify-center text-center",
               isActive ? "text-primary" : "text-secondary hover:text-primary",
             )}
           >

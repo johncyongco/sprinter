@@ -122,7 +122,7 @@ export default function ProfilePage() {
       </header>
 
       <div className="space-y-10">
-        <Tabs items={TABS} active={tab} onChange={setTab} />
+        <Tabs items={TABS} active={tab} onChange={setTab} equal />
 
         {tab === "drafts" && (
           <DraftsTab drafts={drafts} slugOf={(id) => allStories?.find((s) => s.id === id)?.slug ?? ""} />
