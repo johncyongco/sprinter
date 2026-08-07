@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Feather, GitFork, Clock, ArrowRight } from "lucide-react";
 import { getStories } from "@/services/stories";
 import { getTrendingWords } from "@/services/words";
-import { WEEKLY_PROMPT, authorById } from "@/services/mock";
+import { WEEKLY_PROMPT } from "@/services/mock";
+import { penNameFor, avatarFor } from "@/lib/authors";
 import { cn } from "@/lib/cn";
 import type { Story } from "@/types";
 
@@ -108,8 +109,6 @@ function CompactStoryCard({
   index: number;
   active: boolean;
 }) {
-  const author = authorById(story.seedAuthorId);
-
   return (
     <article>
       <Link
@@ -147,9 +146,9 @@ function CompactStoryCard({
           </h3>
           <div className="flex items-center gap-2 text-[12px] text-secondary">
             <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
-              {author?.avatar ?? "?"}
+              {avatarFor(story.seedAuthorId)}
             </span>
-            <span className="truncate">{author?.penName ?? "A quiet author"}</span>
+            <span className="truncate">{penNameFor(story.seedAuthorId)}</span>
           </div>
           <div className="flex items-center gap-3 text-[12px] text-secondary">
             <span className="flex items-center gap-1">

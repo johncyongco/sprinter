@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, Bookmark, Download, Users } from "lucide-react";
 import type { Story } from "@/types";
-import { authorById } from "@/services/mock";
+import { penNameFor, avatarFor } from "@/lib/authors";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { exportStoryPdf } from "@/lib/pdf";
@@ -16,8 +16,8 @@ export function StoryHeader({
   const [bookmarked, setBookmarked] = useState(false);
 
   const authorNames = story.contributorIds
-    .map((id) => authorById(id)?.penName)
-    .filter(Boolean)
+    .map((id) => penNameFor(id))
+    .filter((n) => n !== "a quiet author")
     .slice(0, 3) as string[];
 
   return (
@@ -45,7 +45,7 @@ export function StoryHeader({
           <div className="flex items-center gap-3">
             <div className="flex -space-x-3">
               {story.contributorIds.slice(0, 4).map((id) => (
-                <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-background" />
+                <Avatar key={id} text={avatarFor(id)} size="sm" className="ring-2 ring-background" />
               ))}
             </div>
             <p className="text-sm text-secondary max-w-[240px] leading-snug">

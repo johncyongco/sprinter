@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, GitFork, Clock } from "lucide-react";
 import type { Story } from "@/types";
-import { authorById } from "@/services/mock";
+import { penNameFor, avatarFor } from "@/lib/authors";
 import { cn } from "@/lib/cn";
 
 export function StoryCard({
@@ -12,8 +12,6 @@ export function StoryCard({
   className?: string;
   index?: number;
 }) {
-  const seedAuthor = authorById(story.seedAuthorId);
-
   return (
     <article
       className={cn(
@@ -64,9 +62,9 @@ export function StoryCard({
 
           <div className="flex items-center gap-3 text-secondary text-sm font-medium">
             <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-              {seedAuthor?.avatar ?? "?"}
+              {avatarFor(story.seedAuthorId)}
             </span>
-            <span className="truncate">{seedAuthor?.penName ?? "A quiet author"}</span>
+            <span className="truncate">{penNameFor(story.seedAuthorId)}</span>
           </div>
 
           <div className="mt-auto flex items-center justify-between pt-1">

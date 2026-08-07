@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { GitBranch, Sparkles } from "lucide-react";
 import type { BranchNode, ContributionType, Story } from "@/types";
 import { authorById, wordById } from "@/services/mock";
+import { penNameFor } from "@/lib/authors";
 import { Modal } from "@/components/ui/Modal";
 import { WordTag } from "@/components/words/WordTag";
 import { Markdown } from "@/lib/markdown";
@@ -69,8 +70,6 @@ export function BranchTree({
     return { node: null as unknown as BranchNode, children: build(null) };
   }, [nodes]);
 
-  const seedAuthor = authorById(story.seedAuthorId);
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -83,7 +82,7 @@ export function BranchTree({
       </div>
 
       <div className="space-y-0">
-        <SeedNode story={story} author={seedAuthor?.penName ?? "A quiet author"} />
+        <SeedNode story={story} author={penNameFor(story.seedAuthorId)} />
 
         <BranchList
           tree={tree.children}
@@ -157,7 +156,7 @@ function BranchList({
                   {TYPE_LABEL[tn.node.type]}
                 </span>
                 <span className="text-xs text-secondary">
-                  {authorById(tn.node.authorId)?.penName ?? "A quiet author"} · {tn.node.createdAt}
+                  {penNameFor(tn.node.authorId)} · {tn.node.createdAt}
                 </span>
               </div>
               <p className="font-display text-[22px] tracking-[-0.02em] leading-tight mb-2">
@@ -202,7 +201,7 @@ function NodeDetail({ node }: { node: BranchNode }) {
         <span className={cn("rounded-full px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em]", toneClass(TYPE_TONES[node.type]))}>
           {TYPE_LABEL[node.type]}
         </span>
-        <span className="text-sm text-secondary">{author?.penName ?? "A quiet author"} · {node.createdAt}</span>
+        <span className="text-sm text-secondary">{penNameFor(node.authorId)} · {node.createdAt}</span>
       </div>
       <h2 className="font-display text-4xl tracking-[-0.04em] leading-tight">{node.title}</h2>
       <div className="prose-story">

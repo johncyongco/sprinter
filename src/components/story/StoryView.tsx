@@ -1,5 +1,6 @@
 import type { Story } from "@/types";
-import { authorById, wordById } from "@/services/mock";
+import { wordById } from "@/services/mock";
+import { penNameFor } from "@/lib/authors";
 import { WordTag } from "@/components/words/WordTag";
 import { Markdown } from "@/lib/markdown";
 
@@ -29,7 +30,7 @@ export function StoryView({
         })}
       </div>
       <p className="text-[13px] text-secondary/80 italic">
-        Seeded by {authorById(story.seedAuthorId)?.penName ?? "a quiet author"} ·{" "}
+        Seeded by {penNameFor(story.seedAuthorId)} ·{" "}
         {story.createdAt} · waiting for its next sentence.
       </p>
     </article>

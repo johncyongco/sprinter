@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, Navigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Feather, Check, Loader2 } from "lucide-react";
@@ -51,6 +51,12 @@ export default function ContinuePage() {
   const saveDraft = useDraftStore((s) => s.saveDraft);
   const clearDraft = useDraftStore((s) => s.clearDraft);
   const lastSaved = useDraftStore((s) => s.lastSaved);
+
+  // Guests must sign in before adding a continuation.
+  const isGuest = Boolean(user) && !user?.provider;
+  if (isGuest) {
+    return <Navigate to="/login" replace />;
+  }
 
   const draftKey = story?.id;
   const existingDraft = useDraftStore((s) => (draftKey ? s.drafts[draftKey] : undefined));

@@ -15,7 +15,7 @@ import {
 import { getStoryBySlug, getStories, publishStory } from "@/services/stories";
 import { getBranches } from "@/services/continuations";
 import { getCritiques, getCritiqueStats, CRITIQUE_DIMENSIONS } from "@/services/critiques";
-import { wordById, authorById } from "@/services/mock";
+import { wordById } from "@/services/mock";
 import { StoryFeedSidebar } from "@/components/story/StoryFeedSidebar";
 import { GenomePanel } from "@/components/story/GenomePanel";
 import { WorkspaceSplit } from "@/components/story/WorkspaceSplit";
@@ -33,6 +33,7 @@ import { useUIStore } from "@/stores/useUIStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { cn } from "@/lib/cn";
 import type { BranchNode, Critique, Story } from "@/types";
+import { penNameFor, avatarFor } from "@/lib/authors";
 
 const READING_TABS = [
   { id: "story", label: "Story" },
@@ -40,29 +41,6 @@ const READING_TABS = [
   { id: "thoughts", label: "Thoughts" },
   { id: "critique", label: "Critique" },
 ];
-
-function penNameFor(authorId: string): string {
-  const fromMock = authorById(authorId)?.penName;
-  if (fromMock) return fromMock;
-  const current = useUserStore.getState().user;
-  if (current && current.id === authorId) return current.penName;
-  return authorId === "me" ? "Guest" : "a quiet author";
-}
-
-function initials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return "Y";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-}
-
-function avatarFor(authorId: string): string {
-  const fromMock = authorById(authorId)?.avatar;
-  if (fromMock) return fromMock;
-  const current = useUserStore.getState().user;
-  if (current && current.id === authorId) return current.avatar || initials(current.penName);
-  return "?";
-}
 
 export default function StoryDetailPage() {
   const { slug = "" } = useParams();
