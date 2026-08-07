@@ -41,6 +41,29 @@ const READING_TABS = [
   { id: "critique", label: "Critique" },
 ];
 
+function penNameFor(authorId: string): string {
+  const fromMock = authorById(authorId)?.penName;
+  if (fromMock) return fromMock;
+  const current = useUserStore.getState().user;
+  if (current && current.id === authorId) return current.penName;
+  return authorId === "me" ? "Guest" : "a quiet author";
+}
+
+function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "Y";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+function avatarFor(authorId: string): string {
+  const fromMock = authorById(authorId)?.avatar;
+  if (fromMock) return fromMock;
+  const current = useUserStore.getState().user;
+  if (current && current.id === authorId) return current.avatar || initials(current.penName);
+  return "?";
+}
+
 export default function StoryDetailPage() {
   const { slug = "" } = useParams();
   const addRecentlyViewed = useUIStore((s) => s.addRecentlyViewed);
@@ -329,11 +352,11 @@ function ReadingPane({
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-3">
                   {story.contributorIds.slice(0, 4).map((id) => (
-                    <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-background" />
+                    <Avatar key={id} text={avatarFor(id)} size="sm" className="ring-2 ring-background" />
                   ))}
                 </div>
                 <p className="text-sm text-secondary max-w-[260px] leading-snug">
-                  {story.contributorIds.slice(0, 3).map((id) => authorById(id)?.penName).filter(Boolean).join(", ")}
+                  {story.contributorIds.slice(0, 3).map((id) => penNameFor(id)).filter((n) => n !== "a quiet author").join(", ")}
                   {story.contributorIds.length > 3 && ` +${story.contributorIds.length - 3} more`}
                 </p>
               </div>
@@ -378,7 +401,7 @@ function ReadingPane({
                 })}
               </div>
               <p className="text-[13px] text-secondary/80 italic">
-                Seeded by {authorById(story.seedAuthorId)?.penName ?? "a quiet author"} · {story.createdAt} · waiting for its next sentence.
+                Seeded by {penNameFor(story.seedAuthorId)} · {story.createdAt} · waiting for its next sentence.
               </p>
             </div>
           )}
@@ -522,11 +545,11 @@ function MobileView({
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <div className="flex -space-x-3">
             {story.contributorIds.slice(0, 3).map((id) => (
-              <Avatar key={id} text={authorById(id)?.avatar ?? "?"} size="sm" className="ring-2 ring-background" />
+              <Avatar key={id} text={avatarFor(id)} size="sm" className="ring-2 ring-background" />
             ))}
           </div>
           <p className="text-sm text-secondary">
-            {story.contributorIds.slice(0, 2).map((id) => authorById(id)?.penName).filter(Boolean).join(", ")}
+            {story.contributorIds.slice(0, 2).map((id) => penNameFor(id)).filter((n) => n !== "a quiet author").join(", ")}
           </p>
           <span className="text-sm text-secondary">{story.words.toLocaleString()} words</span>
         </div>
