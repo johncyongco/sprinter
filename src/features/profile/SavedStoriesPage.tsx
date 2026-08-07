@@ -32,6 +32,7 @@ export default function SavedStoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
       queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["stories", "explore"] });
       queryClient.invalidateQueries({ queryKey: ["home", "feed"] });
       queryClient.invalidateQueries({ queryKey: ["written"] });
     },

@@ -182,20 +182,23 @@ export async function publishStory(storyId: string): Promise<Story> {
 export async function deleteStory(storyId: string): Promise<void> {
   const me = useUserStore.getState().user?.id ?? "me";
 
-  // Published: remove from Supabase stories (+ cascading continuations) and local STORIES.
-  const publishedLocalIdx = STORIES.findIndex((s) => s.id === storyId);
-  if (publishedLocalIdx !== -1) {
+  // Always remove from Supabase when the id is a cloud uuid (published stories,
+  // including ones loaded only from Explore and not present in local STORIES).
+  if (storyId !== "me") {
     await deletePublishedStory(storyId);
-    STORIES.splice(publishedLocalIdx, 1);
-  }
-
-  // Saved: remove from Supabase saved_seeds (when signed in) and local MY_SEEDS.
-  const savedLocalIdx = MY_SEEDS.findIndex((s) => s.id === storyId);
-  if (savedLocalIdx !== -1) {
     if (me !== "me") await deleteSavedSeed(storyId, me);
-    MY_SEEDS.splice(savedLocalIdx, 1);
   }
 
+  // Remove from local published + saved, wherever the story lives.
+  const publishedLocalIdx = STORIES.findIndex((s) => s.id === storyId);
+  if (publishedLocalIdx !== -1) STORIES.splice(publishedLocalIdx, 1);
+
+  const savedLocalIdx = MY_SEEDS.findIndex((s) => s.id === storyId);
+  if (savedLocalIdx !== -1) MY_SEEDS.splice(savedLocalIdx, 1);
+
+  // If the id is a local id (st-/fw-) but the story was published, its cloud
+  // row uses a uuid we don't have here — require the caller to pass the
+  // resolved cloud id. Local-only deletes are fully handled above.
   persistLibrary();
 }
 

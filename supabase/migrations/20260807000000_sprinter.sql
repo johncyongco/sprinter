@@ -214,3 +214,34 @@ drop policy if exists "authenticated update continuations" on public.continuatio
 create policy "authenticated update continuations"
 on public.continuations for update to authenticated
 using (author_id = auth.uid());
+
+-- Owners may also delete their own rows so deleted stories actually leave the DB.
+drop policy if exists "authenticated delete stories" on public.stories;
+create policy "authenticated delete stories"
+on public.stories for delete to authenticated
+using (seed_author_id = auth.uid());
+
+drop policy if exists "authenticated delete continuations" on public.continuations;
+create policy "authenticated delete continuations"
+on public.continuations for delete to authenticated
+using (author_id = auth.uid());
+
+drop policy if exists "owner delete saved seeds" on public.saved_seeds;
+create policy "owner delete saved seeds"
+on public.saved_seeds for delete to authenticated
+using (owner_id = auth.uid());
+
+drop policy if exists "authenticated delete critiques" on public.critiques;
+create policy "authenticated delete critiques"
+on public.critiques for delete to authenticated
+using (author_id = auth.uid());
+
+drop policy if exists "authenticated delete words" on public.words;
+create policy "authenticated delete words"
+on public.words for delete to authenticated
+using (owner_id = auth.uid());
+
+drop policy if exists "owner delete profiles" on public.profiles;
+create policy "owner delete profiles"
+on public.profiles for delete to authenticated
+using (auth.uid() = id);

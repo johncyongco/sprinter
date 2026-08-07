@@ -104,6 +104,16 @@ async function hasSessionFor(uid: string): Promise<boolean> {
   }
 }
 
+/** True only when there is any active Supabase session (for owner-matched deletes). */
+async function hasAnySession(): Promise<boolean> {
+  try {
+    const { data } = await supabase!.auth.getSession();
+    return Boolean(data.session);
+  } catch {
+    return false;
+  }
+}
+
 function asStringArray(v: string[] | null | undefined): string[] {
   return Array.isArray(v) ? v : [];
 }
@@ -405,12 +415,18 @@ export async function fetchSavedSeeds(ownerId: string): Promise<Story[] | null> 
   }
 }
 
-export async function deleteSavedSeed(storyId: string, ownerId: string): Promise<void> {
-  if (!isBackendUp() || !isRealUuid(ownerId) || !isRealUuid(storyId)) return;
+export async function deleteSavedSeed(storyId: string, ownerId: string): Promise<boolean> {
+  if (!isBackendUp() || !isRealUuid(ownerId) || !isRealUuid(storyId)) return false;
+  if (!(await hasSessionFor(ownerId))) return false;
   try {
-    await supabase!.from("saved_seeds").delete().eq("id", storyId).eq("owner_id", ownerId);
+    const { error } = await supabase!
+      .from("saved_seeds")
+      .delete()
+      .eq("id", storyId)
+      .eq("owner_id", ownerId);
+    return !error;
   } catch {
-    /* best-effort; local removal still applies */
+    return false;
   }
 }
 
@@ -444,13 +460,15 @@ export async function updateSavedSeed(story: Story, ownerId: string): Promise<St
   }
 }
 
-export async function deletePublishedStory(storyId: string): Promise<void> {
-  if (!isBackendUp() || !isRealUuid(storyId)) return;
+export async function deletePublishedStory(storyId: string): Promise<boolean> {
+  if (!isBackendUp() || !isRealUuid(storyId)) return false;
+  if (!(await hasAnySession())) return false;
   try {
     // continuations cascade via FK; saved_seeds are separate so leave them.
-    await supabase!.from("stories").delete().eq("id", storyId);
+    const { error } = await supabase!.from("stories").delete().eq("id", storyId);
+    return !error;
   } catch {
-    /* best-effort */
+    return false;
   }
 }
 
