@@ -39,11 +39,20 @@ export function registerGuestStoryId(storyId: string): void {
 export function canManageStory(story: Pick<Story, "id" | "seedAuthorId">): boolean {
   const user = useUserStore.getState().user;
   const id = user?.id ?? "me";
-  if (story.seedAuthorId !== id) return false;
-  if (id === "me") {
-    // Guest: only stories created on this device.
+
+  // Signed-in ownership: the seed belongs to them.
+  if (story.seedAuthorId === id) return true;
+
+  // Local guest seeds created on THIS device remain manageable even after the
+  // user signs in (so they can be deleted/edited/published).
+  if (id !== "me" && story.seedAuthorId === "me") {
     return loadCreated().has(story.id);
   }
-  // Signed in: ownership via unique uid.
-  return true;
+
+  // Guest ownership: only stories created on this device.
+  if (id === "me") {
+    return loadCreated().has(story.id);
+  }
+
+  return false;
 }

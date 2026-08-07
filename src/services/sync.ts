@@ -1,4 +1,4 @@
-import { STORIES, MY_SEEDS, NODES, CRITIQUES, VAULT_EXTRA } from "./mock";
+import { STORIES, MY_SEEDS, NODES, CRITIQUES, VAULT_EXTRA, persistLibrary } from "./mock";
 import {
   fetchSavedSeeds,
   insertSavedSeedsBatch,
@@ -56,14 +56,23 @@ export async function migrateLocalWorks(uid: string): Promise<SyncResult> {
   const remoteSeeds = await fetchSavedSeeds(uid);
   const remoteSlugs = new Set((remoteSeeds ?? []).map((s) => s.slug));
 
-  const seedsToImport = localGuestSeeds().filter((s) => !remoteSlugs.has(s.slug));
+  const local = localGuestSeeds();
+  const seedsToImport = local.filter((s) => !remoteSlugs.has(s.slug));
   if (seedsToImport.length > 0) {
     const reTagged = seedsToImport.map((s) => ({
       ...s,
       seedAuthorId: uid,
       contributorIds: [uid, ...s.contributorIds.filter((id) => id !== "me")],
     }));
-    result.seedsImported = await insertSavedSeedsBatch(reTagged, uid);
+    const imported = await insertSavedSeedsBatch(reTagged, uid);
+    result.seedsImported = imported;
+    // Hard-reset MY_SEEDS so successfully imported guest seeds aren't shown
+    // again locally (they now live in the cloud). The empty array triggers a
+    // fresh read from the cloud on the next getSavedStories call.
+    if (imported >= seedsToImport.length) {
+      MY_SEEDS.length = 0;
+      persistLibrary();
+    }
   }
 
   const critiquesToImport = localGuestCritiques().map((c) => ({
