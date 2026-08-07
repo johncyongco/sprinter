@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CloudUpload, Loader2, Check } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
-import { hasGuestWorks, migrateLocalWorks, localGuestSeeds, syncFinishedKey } from "@/services/sync";
+import {
+  hasGuestWorks,
+  migrateLocalWorks,
+  localGuestSeeds,
+  localGuestCritiques,
+  localGuestWords,
+  syncFinishedKey,
+  type SyncResult,
+} from "@/services/sync";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 
@@ -12,7 +20,11 @@ export function SyncPrompt() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [count, setCount] = useState(0);
+  const [result, setResult] = useState<SyncResult>({
+    seedsImported: 0,
+    critiquesImported: 0,
+    wordsImported: 0,
+  });
 
   useEffect(() => {
     if (!user?.id || user.id === "me") {
@@ -26,7 +38,11 @@ export function SyncPrompt() {
     }
     // Only show when there is actual guest work on this device to import.
     if (hasGuestWorks()) {
-      setCount(localGuestSeeds().length);
+      setResult({
+        seedsImported: localGuestSeeds().length,
+        critiquesImported: localGuestCritiques().length,
+        wordsImported: localGuestWords().length,
+      });
       setOpen(true);
     }
   }, [user?.id]);
@@ -34,13 +50,14 @@ export function SyncPrompt() {
   const importNow = async () => {
     if (!user?.id) return;
     setBusy(true);
-    const result = await migrateLocalWorks(user.id);
+    const res = await migrateLocalWorks(user.id);
     localStorage.setItem(syncFinishedKey(user.id), "1");
-    setCount(result.seedsImported);
+    setResult(res);
     setBusy(false);
     setDone(true);
     queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
-    window.setTimeout(() => setOpen(false), 1800);
+    queryClient.invalidateQueries({ queryKey: ["vault"] });
+    window.setTimeout(() => setOpen(false), 2000);
   };
 
   const skip = () => {
@@ -48,6 +65,13 @@ export function SyncPrompt() {
     localStorage.setItem(syncFinishedKey(user.id), "1");
     setOpen(false);
   };
+
+  const total = result.seedsImported + result.critiquesImported + result.wordsImported;
+  const itemLines = [
+    result.seedsImported > 0 ? `${result.seedsImported} saved stories` : null,
+    result.critiquesImported > 0 ? `${result.critiquesImported} critiques` : null,
+    result.wordsImported > 0 ? `${result.wordsImported} words` : null,
+  ].filter(Boolean);
 
   return (
     <Modal open={open} onClose={skip}>
@@ -60,8 +84,8 @@ export function SyncPrompt() {
           <div className="space-y-2">
             <p className="font-display text-3xl tracking-[-0.03em]">All set</p>
             <p className="text-sm text-secondary leading-relaxed">
-              {count > 0
-                ? `${count} saved ${count === 1 ? "work" : "works"} are now on your account and will follow you to any device.`
+              {total > 0
+                ? `${itemLines.join(", ")} are now on your account and will follow you to any device.`
                 : "Your saved works are already on your account."}
             </p>
           </div>
@@ -69,8 +93,8 @@ export function SyncPrompt() {
           <div className="space-y-2">
             <p className="font-display text-3xl tracking-[-0.03em]">Bring your works with you?</p>
             <p className="text-sm text-secondary leading-relaxed">
-              {count > 0
-                ? `You have ${count} saved ${count === 1 ? "seed" : "seeds"} on this device. Import them to your account so they survive across devices? They stay private (unpublished) until you share them.`
+              {total > 0
+                ? `You have ${itemLines.join(", ")} on this device from when you were a guest. Import them to your account so they survive across devices? Your stories stay private (unpublished) until you share them.`
                 : `You have writing on this device from when you were a guest. Import it to your account so it survives across devices?`}
             </p>
           </div>

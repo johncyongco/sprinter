@@ -1,4 +1,6 @@
 import { VAULT, VAULT_EXTRA, STORIES, delay, wordById, persistLibrary } from "./mock";
+import { fetchRemoteWords, insertWord } from "./supabase";
+import { useUserStore } from "@/stores/useUserStore";
 import type { BeautifulWord, WordCategory } from "@/types";
 
 export interface WordRelation {
@@ -14,18 +16,20 @@ export interface CreateWordInput {
 }
 
 export async function getVault(): Promise<BeautifulWord[]> {
-  await delay(220);
+  const remote = await fetchRemoteWords();
+  if (remote && remote.length > 0) return remote;
+  await delay(100);
   return [...VAULT, ...VAULT_EXTRA]
     .map((w) => ({ ...w, related: [...w.related] }))
     .sort((a, b) => b.popularity - a.popularity);
 }
 
 export async function createWord(input: CreateWordInput): Promise<BeautifulWord> {
-  await delay(320);
   const existing = [...VAULT, ...VAULT_EXTRA].find(
     (w) => w.term.toLowerCase() === input.term.toLowerCase(),
   );
   if (existing) return existing;
+  const user = useUserStore.getState().user;
   const word: BeautifulWord = {
     id: `w-${Date.now()}`,
     term: input.term.trim(),
@@ -36,9 +40,13 @@ export async function createWord(input: CreateWordInput): Promise<BeautifulWord>
     popularity: Math.max(1, VAULT.length + VAULT_EXTRA.length),
     related: [],
   };
-  VAULT_EXTRA.push(word);
+  const remote = user?.id && user.id !== "me" ? await insertWord(word, user.id) : null;
+  const saved = remote ?? word;
+  if (!VAULT_EXTRA.some((w) => w.term.toLowerCase() === saved.term.toLowerCase())) {
+    VAULT_EXTRA.push(saved);
+  }
   persistLibrary();
-  return word;
+  return saved;
 }
 
 export async function getWord(id: string): Promise<BeautifulWord | null> {

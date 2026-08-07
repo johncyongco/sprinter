@@ -1,5 +1,5 @@
 import { supabase } from "./client";
-import type { BranchNode, Story, StoryWord } from "@/types";
+import type { BeautifulWord, BranchNode, Critique, CritiqueScoreKey, Story, StoryWord } from "@/types";
 
 /* ============================================================
    Supabase adapter — drops the domain types to/from Postgres rows.
@@ -412,6 +412,209 @@ export async function insertSavedSeedsBatch(stories: Story[], ownerId: string): 
     );
     if (error) throw error;
     return stories.length;
+  } catch {
+    return 0;
+  }
+}
+
+/* ------------------------ critiques ------------------------ */
+
+export interface CritiqueRow {
+  id: string;
+  story_id: string;
+  author_id: string | null;
+  scores: Record<string, number>;
+  reflection: string;
+  is_editorial: boolean;
+  created_at: string;
+}
+
+export function critiqueRowToCritique(row: CritiqueRow): Critique {
+  const scores = {} as Record<CritiqueScoreKey, number>;
+  for (const k of Object.keys(row.scores)) {
+    scores[k as CritiqueScoreKey] = row.scores[k];
+  }
+  return {
+    id: row.id,
+    storyId: row.story_id,
+    authorId: row.author_id ?? "me",
+    createdAt: (row.created_at ?? "").slice(0, 10),
+    scores,
+    reflection: row.reflection,
+    isEditorial: row.is_editorial,
+  };
+}
+
+export async function fetchCritiquesForStory(storyId: string): Promise<Critique[] | null> {
+  if (!isBackendUp()) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("critiques")
+      .select("*")
+      .eq("story_id", storyId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return ((data as CritiqueRow[]) ?? []).map(critiqueRowToCritique);
+  } catch {
+    return null;
+  }
+}
+
+export async function insertCritique(input: {
+  storyId: string;
+  authorId: string;
+  scores: Record<CritiqueScoreKey, number>;
+  reflection: string;
+}): Promise<Critique | null> {
+  if (!isBackendUp() || !isRealUuid(input.authorId) || !isRealUuid(input.storyId)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("critiques")
+      .insert({
+        story_id: input.storyId,
+        author_id: input.authorId,
+        scores: input.scores,
+        reflection: input.reflection,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return critiqueRowToCritique(data as CritiqueRow);
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchCritiquesByAuthor(authorId: string): Promise<Critique[] | null> {
+  if (!isBackendUp() || !isRealUuid(authorId)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("critiques")
+      .select("*")
+      .eq("author_id", authorId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return ((data as CritiqueRow[]) ?? []).map(critiqueRowToCritique);
+  } catch {
+    return null;
+  }
+}
+
+export async function insertCritiquesBatch(
+  inputs: {
+    storyId: string;
+    authorId: string;
+    scores: Record<CritiqueScoreKey, number>;
+    reflection: string;
+  }[],
+  ownerId: string,
+): Promise<number> {
+  if (!isBackendUp() || !isRealUuid(ownerId) || inputs.length === 0) return 0;
+  try {
+    const { error } = await supabase!.from("critiques").insert(
+      inputs.map((c) => ({
+        story_id: c.storyId,
+        author_id: c.authorId ?? ownerId,
+        scores: c.scores,
+        reflection: c.reflection,
+      })),
+    );
+    if (error) throw error;
+    return inputs.length;
+  } catch {
+    return 0;
+  }
+}
+
+/* ------------------------ words ------------------------ */
+
+export interface WordRow {
+  id: string;
+  term: string;
+  meaning: string;
+  category: string | null;
+  owner_id: string | null;
+  usage_count: number;
+  contributors: number;
+  popularity: number;
+  related: string[] | null;
+}
+
+export function wordRowToWord(row: WordRow): BeautifulWord {
+  return {
+    id: row.id,
+    term: row.term,
+    meaning: row.meaning,
+    category: (row.category as BeautifulWord["category"]) ?? undefined,
+    usageCount: row.usage_count,
+    contributors: row.contributors,
+    popularity: row.popularity,
+    related: asStringArray(row.related),
+  };
+}
+
+export async function fetchRemoteWords(): Promise<BeautifulWord[] | null> {
+  if (!isBackendUp()) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("words")
+      .select("*")
+      .order("popularity", { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return ((data as WordRow[]) ?? []).map(wordRowToWord);
+  } catch {
+    return null;
+  }
+}
+
+export async function insertWord(
+  word: Omit<BeautifulWord, "id">,
+  ownerId: string,
+): Promise<BeautifulWord | null> {
+  if (!isBackendUp() || !isRealUuid(ownerId)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("words")
+      .insert({
+        term: word.term,
+        meaning: word.meaning,
+        category: word.category ?? null,
+        owner_id: ownerId,
+        usage_count: word.usageCount,
+        contributors: word.contributors,
+        popularity: word.popularity,
+        related: word.related,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return wordRowToWord(data as WordRow);
+  } catch {
+    return null;
+  }
+}
+
+export async function insertWordsBatch(
+  words: Omit<BeautifulWord, "id">[],
+  ownerId: string,
+): Promise<number> {
+  if (!isBackendUp() || !isRealUuid(ownerId) || words.length === 0) return 0;
+  try {
+    const { error } = await supabase!.from("words").insert(
+      words.map((word) => ({
+        term: word.term,
+        meaning: word.meaning,
+        category: word.category ?? null,
+        owner_id: ownerId,
+        usage_count: word.usageCount,
+        contributors: word.contributors,
+        popularity: word.popularity,
+        related: word.related,
+      })),
+    );
+    if (error) throw error;
+    return words.length;
   } catch {
     return 0;
   }

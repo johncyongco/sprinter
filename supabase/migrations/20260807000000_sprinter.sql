@@ -86,6 +86,67 @@ create policy "owner update saved seeds"
 on public.saved_seeds for update to authenticated
 using (owner_id = auth.uid());
 
+-- Critiques left on a published story. Visible to everyone (they belong to
+-- a public story) but only their writer may create/update them.
+create table if not exists public.critiques (
+  id uuid primary key default gen_random_uuid(),
+  story_id uuid not null,
+  author_id uuid,
+  scores jsonb not null default '{}',
+  reflection text not null default '',
+  is_editorial boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.critiques enable row level security;
+
+drop policy if exists "public read critiques" on public.critiques;
+create policy "public read critiques"
+on public.critiques for select to anon
+using (true);
+
+drop policy if exists "authenticated insert critiques" on public.critiques;
+create policy "authenticated insert critiques"
+on public.critiques for insert to authenticated
+with check (author_id = auth.uid());
+
+drop policy if exists "authenticated update critiques" on public.critiques;
+create policy "authenticated update critiques"
+on public.critiques for update to authenticated
+using (author_id = auth.uid());
+
+-- Words a writer has contributed to the shared Vault. Readable by everyone,
+-- written by their contributor.
+create table if not exists public.words (
+  id uuid primary key default gen_random_uuid(),
+  term text not null unique,
+  meaning text not null default '',
+  category text,
+  owner_id uuid,
+  usage_count integer not null default 0,
+  contributors integer not null default 1,
+  popularity integer not null default 0,
+  related text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+alter table public.words enable row level security;
+
+drop policy if exists "public read words" on public.words;
+create policy "public read words"
+on public.words for select to anon
+using (true);
+
+drop policy if exists "authenticated insert words" on public.words;
+create policy "authenticated insert words"
+on public.words for insert to authenticated
+with check (owner_id = auth.uid());
+
+drop policy if exists "authenticated update words" on public.words;
+create policy "authenticated update words"
+on public.words for update to authenticated
+using (owner_id = auth.uid());
+
 -- Row Level Security: anyone can read published stories, but only the
 -- writer of a row can create/update their own. This keeps the anon
 -- key safe in the frontend while allowing real Google sign-in to publish.

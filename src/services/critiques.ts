@@ -1,4 +1,5 @@
 import { CRITIQUES, STORIES, AUTHORS, delay, critiquesFor, persistLibrary } from "./mock";
+import { fetchCritiquesForStory, insertCritique } from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
 import type { Critique, CritiqueScoreKey } from "@/types";
 
@@ -20,14 +21,15 @@ export interface CritiqueInput {
 }
 
 export async function getCritiques(storyId: string): Promise<Critique[]> {
-  await delay(220);
+  const remote = await fetchCritiquesForStory(storyId);
+  if (remote) return remote;
+  await delay(100);
   return critiquesFor(storyId)
     .map((c) => ({ ...c, scores: { ...c.scores } }))
     .sort((a, b) => Number(b.isEditorial) - Number(a.isEditorial));
 }
 
 export async function submitCritique(input: CritiqueInput): Promise<Critique> {
-  await delay(380);
   const user = useUserStore.getState().user;
   const authorId = user?.id ?? "me";
   const critique: Critique = {
@@ -39,17 +41,27 @@ export async function submitCritique(input: CritiqueInput): Promise<Critique> {
     reflection: input.reflection,
     isEditorial: false,
   };
-  CRITIQUES.push(critique);
+
+  // Persist to Supabase when the critique targets a published story and the
+  // writer is signed in; otherwise keep it local.
+  const remote = await insertCritique({
+    storyId: input.storyId,
+    authorId,
+    scores: input.scores,
+    reflection: input.reflection,
+  });
+  const saved = remote ?? critique;
+
+  if (!CRITIQUES.some((c) => c.id === saved.id)) CRITIQUES.push(saved);
   const story = STORIES.find((s) => s.id === input.storyId);
   if (story) story.critiqueCount += 1;
   const me = AUTHORS.find((a) => a.id === "me");
   if (me) me.stats.critiques += 1;
   persistLibrary();
-  return critique;
+  return saved;
 }
 
 export async function getCritiqueStats(storyId: string) {
-  await delay(140);
   const list = critiquesFor(storyId);
   if (list.length === 0) return null;
   const avg: Record<string, number> = {};
