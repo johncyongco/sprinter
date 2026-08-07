@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Moon, Sun, Monitor, Download, ShieldCheck, ExternalLink } from "lucide-react";
 import { getProfile } from "@/services/users";
@@ -39,13 +39,38 @@ export function ProfileSettings() {
   const notificationPrefs = useUIStore((s) => s.notificationPrefs);
   const toggleNotification = useUIStore((s) => s.toggleNotification);
 
-  const [form, setForm] = useState({ penName: "", bio: "", favoriteLine: "" });
+  const [userEdited, setUserEdited] = useState(false);
+  const [form, setForm] = useState<{ penName: string; bio: string; favoriteLine: string }>({
+    penName: "",
+    bio: "",
+    favoriteLine: "",
+  });
 
   const initial = user ?? profile;
-  const value = form.penName ? form : { penName: initial?.penName ?? "", bio: initial?.bio ?? "", favoriteLine: initial?.favoriteLine ?? "" };
+  const value = form;
+
+  // Seed the form from the stored profile only once, before the user edits.
+  useEffect(() => {
+    if (userEdited || !initial) return;
+    setForm({
+      penName: initial.penName ?? "",
+      bio: initial.bio ?? "",
+      favoriteLine: initial.favoriteLine ?? "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial, userEdited]);
+
+  const edit = (patch: Partial<typeof form>) => {
+    setUserEdited(true);
+    setForm((f) => ({ ...f, ...patch }));
+  };
 
   const saveProfile = () => {
-    updateProfile({ penName: value.penName, bio: value.bio, favoriteLine: value.favoriteLine });
+    updateProfile({
+      penName: value.penName.trim(),
+      bio: value.bio,
+      favoriteLine: value.favoriteLine,
+    });
     setSaved(true);
     queryClient.invalidateQueries({ queryKey: ["profile"] });
     window.setTimeout(() => setSaved(false), 1800);
@@ -84,15 +109,15 @@ export function ProfileSettings() {
         <div className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="pen" className="text-sm font-semibold">Pen name</label>
-            <Input id="pen" value={value.penName} onChange={(e) => setForm((f) => ({ ...f, penName: e.target.value }))} placeholder="Your Pen Name" />
+            <Input id="pen" value={value.penName} onChange={(e) => edit({ penName: e.target.value })} placeholder="Your Pen Name" />
           </div>
           <div className="space-y-2">
             <label htmlFor="line" className="text-sm font-semibold">Favorite line</label>
-            <Input id="line" value={value.favoriteLine} onChange={(e) => setForm((f) => ({ ...f, favoriteLine: e.target.value }))} placeholder="A sentence you carry" />
+            <Input id="line" value={value.favoriteLine} onChange={(e) => edit({ favoriteLine: e.target.value })} placeholder="A sentence you carry" />
           </div>
           <div className="space-y-2">
             <label htmlFor="bio" className="text-sm font-semibold">Bio</label>
-            <Textarea id="bio" rows={4} value={value.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} placeholder="A few sentences about the writer you are becoming." />
+            <Textarea id="bio" rows={4} value={value.bio} onChange={(e) => edit({ bio: e.target.value })} placeholder="A few sentences about the writer you are becoming." />
           </div>
           <button
             type="button"
