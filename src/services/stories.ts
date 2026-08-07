@@ -290,15 +290,22 @@ export async function getStoryCount(): Promise<number> {
 export async function getSavedStories(): Promise<Story[]> {
   const me = useUserStore.getState().user?.id ?? "me";
   const publishedIds = new Set(STORIES.map((s) => s.id));
-  let list: Story[];
-  if (me !== "me") {
+  const signedIn = me !== "me";
+
+  let base: Story[];
+  if (signedIn) {
     const remote = await fetchSavedSeeds(me);
-    list = remote ?? MY_SEEDS;
+    // Merge cloud seeds with any local guest seeds created on this device.
+    const local = MY_SEEDS.filter((s) => s.seedAuthorId === "me");
+    const remoteList = remote ? [...remote] : [];
+    const remoteIds = new Set(remoteList.map((s) => s.id));
+    base = [...local.filter((s) => !remoteIds.has(s.id)), ...remoteList];
   } else {
-    list = MY_SEEDS;
+    base = MY_SEEDS;
   }
-  return list
-    .filter((s) => s.seedAuthorId === me && !publishedIds.has(s.id))
+
+  return base
+    .filter((s) => !publishedIds.has(s.id))
     .map((s) => ({ ...s, contributorIds: [...s.contributorIds] }));
 }
 
