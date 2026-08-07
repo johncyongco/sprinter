@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { signInWithGoogle } from "@/services/auth";
@@ -28,10 +27,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background grid place-items-center px-6 py-16">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      <div
         className="w-full max-w-md space-y-10"
       >
         <div className="flex justify-center">
@@ -94,7 +90,7 @@ export default function LoginPage() {
         <p className="text-center text-[13px] text-secondary leading-relaxed">
           Continuing means you'll write under a pen name. Sprinter keeps everything kind, everything yours, everything slow.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

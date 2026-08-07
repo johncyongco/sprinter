@@ -225,23 +225,13 @@ export default function StartStoryPage() {
       >
         <X className="h-5 w-5" />
       </button>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-[70] space-y-10"
-      >
+      <div className="relative z-[70] space-y-10">
       <p className="flex items-center gap-2 text-sm text-background">
         <Sprout className="h-4 w-4 text-gold" />
         Begin a new branch — your opening becomes the seed someone else will pick up.
       </p>
       {challenge && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="relative overflow-hidden rounded-[32px] border border-gold/25 bg-gold/[0.07] p-7 sm:p-8"
-        >
+        <div className="relative overflow-hidden rounded-[32px] border border-gold/25 bg-gold/[0.07] p-7 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               <p className="uppercase tracking-[0.25em] text-xs text-gold font-semibold flex items-center gap-2">
@@ -266,7 +256,7 @@ export default function StartStoryPage() {
               <X className="h-3.5 w-3.5" /> Clear prompt
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Writing steps">
@@ -441,7 +431,7 @@ export default function StartStoryPage() {
           </Button>
         )}
       </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

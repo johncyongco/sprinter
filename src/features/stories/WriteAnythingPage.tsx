@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { BookOpenText, ArrowRight, X } from "lucide-react";
 import { createFreeWrite } from "@/services/stories";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -36,10 +35,7 @@ export default function WriteAnythingPage() {
       />
 
       <div className="relative z-[70]">
-        <motion.section
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        <section
           className="mx-auto max-w-3xl rounded-[34px] border border-border bg-surface p-8 sm:p-10 shadow-hover space-y-8 relative"
         >
           <button
@@ -95,7 +91,7 @@ export default function WriteAnythingPage() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
-        </motion.section>
+        </section>
       </div>
     </div>
   );
