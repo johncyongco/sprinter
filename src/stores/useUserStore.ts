@@ -79,7 +79,39 @@ export const useUserStore = create<UserState>()(
           onboarded: false,
         }),
       setSessionUser: (sessionUser, onboarded = true) =>
-        set({ user: sessionUser, onboarded: sessionUser ? onboarded : false }),
+        set((s) => {
+          if (!sessionUser) return { user: sessionUser, onboarded: false };
+          // Preserve the user's edited profile for a returning session (same
+          // uid) instead of clobbering it with the Google/default values.
+          const prev =
+            s.user && s.user.id === sessionUser.id ? s.user : undefined;
+          const editable = prev
+            ? {
+                penName: prev.penName || sessionUser.penName,
+                avatar: prev.avatar || sessionUser.avatar,
+                bio: prev.bio,
+                favoriteLine: prev.favoriteLine,
+                genres: prev.genres,
+                favoriteWordIds: prev.favoriteWordIds,
+                goals: prev.goals,
+              }
+            : {
+                penName: sessionUser.penName,
+                avatar: sessionUser.avatar,
+                bio: sessionUser.bio,
+                favoriteLine: sessionUser.favoriteLine,
+                genres: sessionUser.genres,
+                favoriteWordIds: sessionUser.favoriteWordIds,
+                goals: sessionUser.goals,
+              };
+          return {
+            user: {
+              ...sessionUser,
+              ...editable,
+            },
+            onboarded,
+          };
+        }),
       completeOnboarding: (profile) =>
         set((s) => ({
           onboarded: true,
