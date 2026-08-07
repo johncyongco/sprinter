@@ -1,17 +1,38 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { Home, Compass, Feather, Trophy, User } from "lucide-react";
+import { NavLink, useLocation, Link } from "react-router-dom";
+import { Home, Compass, Feather, Trophy, User, CloudUpload } from "lucide-react";
 import { WriteChoiceModal } from "@/components/write/WriteChoiceModal";
+import { useUserStore } from "@/stores/useUserStore";
 import { cn } from "@/lib/cn";
 
 export function MobileNav() {
   const [writeOpen, setWriteOpen] = useState(false);
   const isWriteActive = useLocation().pathname.startsWith("/write");
+  const user = useUserStore((s) => s.user);
+  const isGuest = !user?.provider;
+
   return (
     <nav
       aria-label="Mobile"
       className="lg:hidden fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]"
     >
+      {isGuest && (
+        <Link
+          to="/login"
+          className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-primary/10 via-surface to-gold/10 px-5 py-3.5"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-background">
+            <CloudUpload className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <p className="text-[13px] font-semibold leading-tight">Sign in to save your works</p>
+            <p className="text-[12px] text-secondary leading-snug">
+              Keep your stories and branches across devices.
+            </p>
+          </span>
+          <span className="shrink-0 text-primary font-semibold text-[13px]">Sign in →</span>
+        </Link>
+      )}
       <div className="grid grid-cols-5">
         <NavLink
           to="/"
