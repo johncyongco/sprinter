@@ -329,12 +329,19 @@ export async function getStoriesByFilter(
   page = 0,
   perPage = 8,
 ): Promise<{ items: Story[]; next: number | null }> {
-  await delay(10);
-  // If we have local (fallback) data, render it instantly rather than
-  // blocking on a slow Supabase round-trip.
-  let items = [...STORIES];
+    await delay(10);
+  // Merge local fallback data with cloud so nothing a user published on this
+  // device is ever hidden by an empty/split cloud list.
   const remote = await fetchPublishedStories();
-  if (remote && remote.length > 0) items = [...remote];
+  const remoteById = new Map((remote ?? []).map((s) => [s.id, s]));
+  const seen = new Set<string>();
+  let items: Story[] = [];
+  for (const s of [...STORIES, ...(remote ?? [])]) {
+    if (seen.has(s.id)) continue;
+    seen.add(s.id);
+    items.push(remoteById.get(s.id) ?? s);
+  }
+  if (items.length === 0) items = [...STORIES];
 
   if (filters.query) {
     const q = filters.query.toLowerCase();
