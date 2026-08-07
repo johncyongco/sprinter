@@ -13,8 +13,9 @@ import {
   Send,
   Pencil,
   Loader2,
+  Trash2,
 } from "lucide-react";
-import { getStoryBySlug, getStories, publishStory, updateStory } from "@/services/stories";
+import { getStoryBySlug, getStories, publishStory, updateStory, deleteStory } from "@/services/stories";
 import { getBranches } from "@/services/continuations";
 import { getCritiques, getCritiqueStats, CRITIQUE_DIMENSIONS } from "@/services/critiques";
 import { wordById } from "@/services/mock";
@@ -34,7 +35,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Markdown } from "@/lib/markdown";
 import { useUIStore } from "@/stores/useUIStore";
-import { useUserStore } from "@/stores/useUserStore";
+import { canManageStory } from "@/lib/ownership";
 import { cn } from "@/lib/cn";
 import type { BranchNode, Critique, Story } from "@/types";
 import { penNameFor, avatarFor } from "@/lib/authors";
@@ -160,7 +161,6 @@ function DesktopWorkspace({
 /* ------------------------- publish seed button ------------------------- */
 
 function PublishSeedButton({ story }: { story: Story }) {
-  const me = useUserStore((s) => s.user?.id) ?? "me";
   const queryClient = useQueryClient();
   const { data: allStories } = useQuery({
     queryKey: ["stories"],
@@ -176,7 +176,7 @@ function PublishSeedButton({ story }: { story: Story }) {
     },
   });
 
-  const isOwner = story.seedAuthorId === me;
+  const isOwner = canManageStory(story);
   const isPublished = allStories?.some((s) => s.id === story.id) ?? false;
   if (isPublished || !isOwner) return null;
 
@@ -196,7 +196,6 @@ function PublishSeedButton({ story }: { story: Story }) {
 /* ------------------------- edit story button ------------------------- */
 
 function EditStoryButton({ story }: { story: Story }) {
-  const me = useUserStore((s) => s.user?.id) ?? "me";
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(story.title);
@@ -214,7 +213,9 @@ function EditStoryButton({ story }: { story: Story }) {
     },
   });
 
-  if (story.seedAuthorId !== me) return null;
+  const canManage = canManageStory(story);
+
+  if (!canManage) return null;
 
   return (
     <>
@@ -267,6 +268,73 @@ function EditStoryButton({ story }: { story: Story }) {
                 </>
               ) : (
                 <>Save changes</>
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1">
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+/* ------------------------- delete story button ------------------------- */
+
+function DeleteStoryButton({ story }: { story: Story }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const canManage = canManageStory(story);
+
+  const remove = useMutation({
+    mutationFn: () => deleteStory(story.id),
+    onSuccess: () => {
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-stories"] });
+      queryClient.invalidateQueries({ queryKey: ["home", "feed"] });
+      queryClient.invalidateQueries({ queryKey: ["written"] });
+      navigate("/explore");
+    },
+  });
+
+  if (!canManage) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Delete story"
+        title="Delete story"
+        className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-secondary transition hover:text-danger"
+      >
+        <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <div className="space-y-6 p-8 sm:p-10">
+          <p className="font-display text-3xl tracking-[-0.03em]">Delete this story?</p>
+          <p className="text-sm text-secondary leading-relaxed">
+            “{story.title}” will be removed from your saved stories and, if it was
+            published, from the library. This cannot be undone.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="danger"
+              onClick={() => remove.mutate()}
+              disabled={remove.isPending}
+              className="flex-1"
+            >
+              {remove.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Deleting…
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" /> Delete
+                </>
               )}
             </Button>
             <Button variant="outline" onClick={() => setOpen(false)} className="flex-1">
@@ -379,6 +447,7 @@ function ReadingPane({
         <div className="flex items-center gap-2">
           <PublishSeedButton story={story} />
           <EditStoryButton story={story} />
+          <DeleteStoryButton story={story} />
           <button
             type="button"
             onClick={() => setBookmarked((b) => !b)}
@@ -633,11 +702,12 @@ function MobileView({
         <Button onClick={() => navigate(`/stories/${story.slug}/continue`)} className="flex-1">
           <Sparkles className="h-4 w-4" /> Continue
         </Button>
-        <Button variant="outline" onClick={() => navigate(`/stories/${story.slug}/critique`)}>
+        <Button variant="outline" onClick={() => navigate(`/stories/${story.slug}/critique`)} className="flex-1">
           Critique
         </Button>
         <PublishSeedButton story={story} />
         <EditStoryButton story={story} />
+        <DeleteStoryButton story={story} />
       </div>
 
       <Tabs

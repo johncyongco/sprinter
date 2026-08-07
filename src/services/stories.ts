@@ -12,6 +12,7 @@ import {
   updateSavedSeed,
 } from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
+import { registerGuestStoryId } from "@/lib/ownership";
 import type {
   CompletionStatus,
   Emotion,
@@ -138,6 +139,7 @@ export async function createStory(input: NewStoryInput): Promise<Story> {
     excerpt: body.split(/\s+/).slice(0, 42).join(" ") + "…",
   };
   MY_SEEDS.unshift(story);
+  if (user?.id === "me") registerGuestStoryId(story.id);
   persistLibrary();
   if (user?.id && user.id !== "me") {
     await insertSavedSeed(story, user.id);
@@ -271,6 +273,7 @@ export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {
     excerpt: body.split(/\s+/).slice(0, 42).join(" ") + "…",
   };
   MY_SEEDS.unshift(story);
+  if (user?.id === "me") registerGuestStoryId(story.id);
   persistLibrary();
   if (user?.id && user.id !== "me") {
     await insertSavedSeed(story, user.id);
