@@ -67,6 +67,7 @@ interface CategoryDef {
   glow: string;
   count?: number;
   countLabel?: string;
+  soon?: boolean;
 }
 
 export default function ExplorePage() {
@@ -100,6 +101,7 @@ export default function ExplorePage() {
       glow: "rgba(184,155,103,0.22)",
       count: words.data?.length,
       countLabel: "words",
+      soon: true,
     },
     {
       id: "anthologies",
@@ -112,6 +114,7 @@ export default function ExplorePage() {
       glow: "rgba(123,146,116,0.22)",
       count: anthologies.data?.length,
       countLabel: "anthologies",
+      soon: true,
     },
     {
       id: "communities",
@@ -124,6 +127,7 @@ export default function ExplorePage() {
       glow: "rgba(198,156,90,0.22)",
       count: communities.data?.length,
       countLabel: "circles",
+      soon: true,
     },
     {
       id: "thoughts",
@@ -136,6 +140,7 @@ export default function ExplorePage() {
       glow: "rgba(181,106,106,0.20)",
       count: thoughts.data?.length,
       countLabel: "thoughts",
+      soon: true,
     },
     {
       id: "motifs",
@@ -148,6 +153,7 @@ export default function ExplorePage() {
       glow: "rgba(184,155,103,0.22)",
       count: THEMES.length,
       countLabel: "themes",
+      soon: true,
     },
   ];
 
@@ -164,37 +170,66 @@ export default function ExplorePage() {
 
 function CategoryCard({ category }: { category: CategoryDef; index: number }) {
   const Icon = category.icon;
+  const content = (
+    <>
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          background: `radial-gradient(420px 260px at 90% -10%, ${category.glow}, transparent 60%), linear-gradient(165deg, ${category.tint} 0%, transparent 55%)`,
+        }}
+      />
+      <div className="relative flex items-center justify-between">
+        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/10 text-gold">
+          <Icon className="h-5 w-5" strokeWidth={1.5} />
+        </span>
+        {category.soon ? (
+          <span className="inline-flex items-center rounded-full border border-border bg-surface px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary">
+            Coming soon
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
+            Open <ArrowUpRight className="h-4 w-4" />
+          </span>
+        )}
+      </div>
+      <h3 className="relative mt-6 font-display text-3xl leading-none tracking-[-0.03em]">{category.title}</h3>
+      <p className="relative mt-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{category.tagline}</p>
+      <p className="relative mt-4 text-sm leading-relaxed text-secondary">{category.description}</p>
+      {category.count != null && (
+        <span
+          className={
+            category.soon
+              ? "relative mt-6 inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-secondary"
+              : "relative mt-6 inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-primary"
+          }
+        >
+          {category.count.toLocaleString()} {category.countLabel}
+        </span>
+      )}
+    </>
+  );
+
+  if (category.soon) {
+    return (
+      <div
+        className="mb-5 break-inside-avoid"
+        aria-disabled="true"
+      >
+        <div className="group relative flex h-full flex-col overflow-hidden rounded-[32px] border border-border/60 bg-card/60 p-8 opacity-70 saturate-[0.6] cursor-default">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="mb-5 break-inside-avoid"
-    >
+    <div className="mb-5 break-inside-avoid">
       <Link
         to={category.to}
         className="group relative flex h-full flex-col overflow-hidden rounded-[32px] border border-border/70 bg-card p-8 shadow-card transition-all duration-500 ease-[var(--ease-fluid)] hover:-translate-y-1 hover:shadow-hover"
       >
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden="true"
-          style={{
-            background: `radial-gradient(420px 260px at 90% -10%, ${category.glow}, transparent 60%), linear-gradient(165deg, ${category.tint} 0%, transparent 55%)`,
-          }}
-        />
-        <div className="relative flex items-center justify-between">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/10 text-gold">
-            <Icon className="h-5 w-5" strokeWidth={1.5} />
-          </span>
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
-            Open <ArrowUpRight className="h-4 w-4" />
-          </span>
-        </div>
-        <h3 className="relative mt-6 font-display text-3xl leading-none tracking-[-0.03em]">{category.title}</h3>
-        <p className="relative mt-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{category.tagline}</p>
-        <p className="relative mt-4 text-sm leading-relaxed text-secondary">{category.description}</p>
-        {category.count != null && (
-          <span className="relative mt-6 inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-primary">
-            {category.count.toLocaleString()} {category.countLabel}
-          </span>
-        )}
+        {content}
       </Link>
     </div>
   );
