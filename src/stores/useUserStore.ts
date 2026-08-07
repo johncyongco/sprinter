@@ -135,9 +135,8 @@ export const useUserStore = create<UserState>()(
           };
         }),
       completeOnboarding: (profile) =>
-        set((s) => ({
-          onboarded: true,
-          user: {
+        set((s) => {
+          const user = {
             ...(s.user ?? {
               id: "me",
               penName: "Your Pen Name",
@@ -150,8 +149,15 @@ export const useUserStore = create<UserState>()(
             }),
             ...profile,
             avatar: initials(profile.penName),
-          },
-        })),
+          };
+          saveStoredProfile(user);
+          if (user.id !== "me") {
+            void import("@/services/profileSync").then((m) =>
+              m.saveProfileToCloud(user),
+            );
+          }
+          return { onboarded: true, user };
+        }),
       updateProfile: (patch) =>
         set((s) => {
           if (!s.user) return {};
@@ -161,6 +167,11 @@ export const useUserStore = create<UserState>()(
             ...(patch.penName ? { avatar: initials(patch.penName) } : {}),
           };
           saveStoredProfile(user);
+          if (user.id !== "me") {
+            void import("@/services/profileSync").then((m) =>
+              m.saveProfileToCloud(user),
+            );
+          }
           return { user };
         }),
       signOut: () =>

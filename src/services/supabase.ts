@@ -729,3 +729,66 @@ export async function insertWordsBatch(
     return 0;
   }
 }
+
+/* ------------------------ profiles ------------------------ */
+
+export interface ProfileRow {
+  id: string;
+  pen_name: string;
+  avatar: string;
+  bio: string;
+  favorite_line: string;
+  genres: string[] | null;
+  favorite_word_ids: string[] | null;
+  goals: unknown;
+}
+
+export async function fetchProfile(uid: string): Promise<ProfileRow | null> {
+  if (!isBackendUp() || !isRealUuid(uid)) return null;
+  try {
+    const result = await withTimeout(
+      supabase!.from("profiles").select("*").eq("id", uid).maybeSingle(),
+    );
+    if (!result) return null;
+    const { data, error } = result;
+    if (error) throw error;
+    return (data as ProfileRow) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function upsertProfile(
+  profile: {
+    id: string;
+    penName: string;
+    avatar: string;
+    bio: string;
+    favoriteLine: string;
+    genres: string[];
+    favoriteWordIds: string[];
+    goals: unknown[];
+  },
+): Promise<boolean> {
+  if (!isBackendUp() || !isRealUuid(profile.id)) return false;
+  try {
+    const { error } = await supabase!.from("profiles").upsert(
+      {
+        id: profile.id,
+        pen_name: profile.penName,
+        avatar: profile.avatar,
+        bio: profile.bio,
+        favorite_line: profile.favoriteLine,
+        genres: profile.genres,
+        favorite_word_ids: profile.favoriteWordIds,
+        goals: profile.goals,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
+    if (error) throw error;
+    return true;
+  } catch {
+    return false;
+  }
+}

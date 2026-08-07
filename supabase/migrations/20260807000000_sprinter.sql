@@ -147,6 +147,37 @@ create policy "authenticated update words"
 on public.words for update to authenticated
 using (owner_id = auth.uid());
 
+-- A writer's public profile (pen name, bio, favorite line, genres). Synced to
+-- the account so edits persist across devices. Private to the owner.
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  pen_name text not null default '',
+  avatar text not null default 'Y',
+  bio text not null default '',
+  favorite_line text not null default '',
+  genres text[] not null default '{}',
+  favorite_word_ids text[] not null default '{}',
+  goals jsonb not null default '[]',
+  updated_at timestamptz not null default now()
+);
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "owner read profiles" on public.profiles;
+create policy "owner read profiles"
+on public.profiles for select to authenticated
+using (auth.uid() = id);
+
+drop policy if exists "owner insert profiles" on public.profiles;
+create policy "owner insert profiles"
+on public.profiles for insert to authenticated
+with check (auth.uid() = id);
+
+drop policy if exists "owner update profiles" on public.profiles;
+create policy "owner update profiles"
+on public.profiles for update to authenticated
+using (auth.uid() = id) with check (auth.uid() = id);
+
 -- Row Level Security: anyone can read published stories, but only the
 -- writer of a row can create/update their own. This keeps the anon
 -- key safe in the frontend while allowing real Google sign-in to publish.

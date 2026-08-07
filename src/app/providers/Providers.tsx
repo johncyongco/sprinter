@@ -63,12 +63,24 @@ function AuthRoot() {
   const location = window.location.pathname;
 
   useEffect(() => {
+    let cancelled = false;
     const unsub = onAuthStateChange((authUser) => {
       if (authUser) {
-        setSessionUser(supabaseUserToProfile(authUser), true);
+        const base = supabaseUserToProfile(authUser);
+        setSessionUser(base, true);
+        // Restore the cloud-saved profile (pen name etc.) across devices.
+        void import("@/services/profileSync").then((m) =>
+          m.loadProfileFromCloud(base.id).then((cloud) => {
+            if (cancelled) return;
+            if (cloud) setSessionUser({ ...base, ...cloud }, true);
+          }),
+        );
       }
     });
-    return unsub;
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, [setSessionUser]);
 
   // Auto-back up local saved seeds/critiques/words to the account when signed
