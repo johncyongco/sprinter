@@ -6,6 +6,7 @@ import {
   insertPublishedStory,
   fetchSavedSeeds,
   insertSavedSeed,
+  insertSavedSeedsBatch,
   deleteSavedSeed,
   deletePublishedStory,
   updatePublishedStory,
@@ -294,10 +295,21 @@ export async function getSavedStories(): Promise<Story[]> {
 
   let base: Story[];
   if (signedIn) {
+    const local = MY_SEEDS.filter((s) => s.seedAuthorId === "me" || s.seedAuthorId === me);
     const remote = await fetchSavedSeeds(me);
-    // Merge cloud seeds with any local guest seeds created on this device.
-    const local = MY_SEEDS.filter((s) => s.seedAuthorId === "me");
     const remoteList = remote ? [...remote] : [];
+    const remoteBySlug = new Map(remoteList.map((s) => [s.slug, s.id]));
+
+    // Back local guest seeds up into the cloud (source of truth), so a later
+    // localStorage clear doesn't lose them. New ones become cloud seeds.
+    const backup = local.filter((s) => !remoteBySlug.has(s.slug));
+    if (backup.length > 0) {
+      const reTagged = backup.map((s) => ({ ...s, seedAuthorId: me }));
+      await insertSavedSeedsBatch(reTagged, me);
+      const again = await fetchSavedSeeds(me);
+      remoteList.push(...(again ?? []).filter((s) => !remoteList.some((r) => r.id === s.id)));
+    }
+
     const remoteIds = new Set(remoteList.map((s) => s.id));
     base = [...local.filter((s) => !remoteIds.has(s.id)), ...remoteList];
   } else {
