@@ -244,14 +244,17 @@ export async function getStoryCount(): Promise<number> {
 
 export async function getSavedStories(): Promise<Story[]> {
   const me = useUserStore.getState().user?.id ?? "me";
+  const publishedIds = new Set(STORIES.map((s) => s.id));
+  let list: Story[];
   if (me !== "me") {
     const remote = await fetchSavedSeeds(me);
-    if (remote) return remote;
+    list = remote ?? MY_SEEDS;
+  } else {
+    list = MY_SEEDS;
   }
-  return MY_SEEDS.filter((s) => s.seedAuthorId === me).map((s) => ({
-    ...s,
-    contributorIds: [...s.contributorIds],
-  }));
+  return list
+    .filter((s) => s.seedAuthorId === me && !publishedIds.has(s.id))
+    .map((s) => ({ ...s, contributorIds: [...s.contributorIds] }));
 }
 
 export async function getStoriesByFilter(
