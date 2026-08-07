@@ -185,9 +185,9 @@ function PublishSeedButton({ story }: { story: Story }) {
       type="button"
       onClick={() => publish.mutate()}
       disabled={publish.isPending}
-      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 text-[13px] font-semibold text-gold transition hover:bg-gold/20 disabled:opacity-60"
+      className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 text-sm font-semibold text-gold transition hover:bg-gold/20 disabled:opacity-60"
     >
-      <Send className="h-3.5 w-3.5" strokeWidth={1.75} />
+      <Send className="h-4 w-4" strokeWidth={1.75} />
       {publish.isPending ? "Publishing…" : "Publish to library"}
     </button>
   );

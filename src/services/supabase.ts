@@ -93,6 +93,17 @@ async function withTimeout<T>(p: PromiseLike<T>, ms = 1200): Promise<T | null> {
   }
 }
 
+/** True only when Supabase has an active session for the given uid. */
+async function hasSessionFor(uid: string): Promise<boolean> {
+  if (!isRealUuid(uid)) return false;
+  try {
+    const { data } = await supabase!.auth.getSession();
+    return Boolean(data.session && data.session.user.id === uid);
+  } catch {
+    return false;
+  }
+}
+
 function asStringArray(v: string[] | null | undefined): string[] {
   return Array.isArray(v) ? v : [];
 }
@@ -210,6 +221,9 @@ export async function fetchStoryById(id: string): Promise<Story | null> {
 export async function insertPublishedStory(story: Story): Promise<Story | null> {
   if (!isBackendUp()) return null;
   if (!isRealUuid(story.seedAuthorId)) return null;
+  // Only write to the cloud when there is an active session for this author;
+  // otherwise fall back to local (avoid 401s from an empty/stale session).
+  if (!(await hasSessionFor(story.seedAuthorId))) return null;
   try {
     const { data, error } = await supabase!
       .from("stories")
@@ -287,6 +301,7 @@ export async function insertContinuation(input: {
 }): Promise<BranchNode | null> {
   if (!isBackendUp()) return null;
   if (!isRealUuid(input.authorId)) return null;
+  if (!(await hasSessionFor(input.authorId))) return null;
   try {
     const { data, error } = await supabase!
       .from("continuations")
@@ -471,6 +486,7 @@ export async function updatePublishedStory(story: Story): Promise<Story | null> 
 
 export async function insertSavedSeed(story: Story, ownerId: string): Promise<Story | null> {
   if (!isBackendUp() || !isRealUuid(ownerId)) return null;
+  if (!(await hasSessionFor(ownerId))) return null;
   try {
     const { data, error } = await supabase!
       .from("saved_seeds")
@@ -577,6 +593,7 @@ export async function insertCritique(input: {
   reflection: string;
 }): Promise<Critique | null> {
   if (!isBackendUp() || !isRealUuid(input.authorId) || !isRealUuid(input.storyId)) return null;
+  if (!(await hasSessionFor(input.authorId))) return null;
   try {
     const { data, error } = await supabase!
       .from("critiques")
@@ -683,6 +700,7 @@ export async function insertWord(
   ownerId: string,
 ): Promise<BeautifulWord | null> {
   if (!isBackendUp() || !isRealUuid(ownerId)) return null;
+  if (!(await hasSessionFor(ownerId))) return null;
   try {
     const { data, error } = await supabase!
       .from("words")
@@ -771,6 +789,7 @@ export async function upsertProfile(
   },
 ): Promise<boolean> {
   if (!isBackendUp() || !isRealUuid(profile.id)) return false;
+  if (!(await hasSessionFor(profile.id))) return false;
   try {
     const { error } = await supabase!.from("profiles").upsert(
       {
