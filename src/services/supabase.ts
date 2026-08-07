@@ -78,6 +78,21 @@ export function isRealUuid(value: string | undefined | null): boolean {
   return typeof value === "string" && UUID_RE.test(value);
 }
 
+/** Resolves to `null` if the underlying promise doesn't settle in time. */
+async function withTimeout<T>(p: PromiseLike<T>, ms = 3000): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function asStringArray(v: string[] | null | undefined): string[] {
   return Array.isArray(v) ? v : [];
 }
@@ -137,10 +152,14 @@ export function storyRowToStory(row: StoryRow): Story {
 export async function fetchPublishedStories(): Promise<Story[] | null> {
   if (!isBackendUp()) return null;
   try {
-    const { data, error } = await supabase!
-      .from("stories")
-      .select("*, continuations(author_id)")
-      .order("updated_at", { ascending: false });
+    const result = await withTimeout(
+      supabase!
+        .from("stories")
+        .select("*, continuations(author_id)")
+        .order("updated_at", { ascending: false }),
+    );
+    if (!result) return null;
+    const { data, error } = result;
     if (error) throw error;
     return (data as StoryRow[]).map(storyRowToStory);
   } catch {
@@ -151,11 +170,15 @@ export async function fetchPublishedStories(): Promise<Story[] | null> {
 export async function fetchStoryBySlug(slug: string): Promise<Story | null> {
   if (!isBackendUp()) return null;
   try {
-    const { data, error } = await supabase!
-      .from("stories")
-      .select("*, continuations(author_id)")
-      .eq("slug", slug)
-      .maybeSingle();
+    const result = await withTimeout(
+      supabase!
+        .from("stories")
+        .select("*, continuations(author_id)")
+        .eq("slug", slug)
+        .maybeSingle(),
+    );
+    if (!result) return null;
+    const { data, error } = result;
     if (error) throw error;
     if (!data) return null;
     return storyRowToStory(data as StoryRow);
@@ -167,11 +190,15 @@ export async function fetchStoryBySlug(slug: string): Promise<Story | null> {
 export async function fetchStoryById(id: string): Promise<Story | null> {
   if (!isBackendUp() || !isRealUuid(id)) return null;
   try {
-    const { data, error } = await supabase!
-      .from("stories")
-      .select("*, continuations(author_id)")
-      .eq("id", id)
-      .maybeSingle();
+    const result = await withTimeout(
+      supabase!
+        .from("stories")
+        .select("*, continuations(author_id)")
+        .eq("id", id)
+        .maybeSingle(),
+    );
+    if (!result) return null;
+    const { data, error } = result;
     if (error) throw error;
     if (!data) return null;
     return storyRowToStory(data as StoryRow);
@@ -347,11 +374,15 @@ export function savedSeedRowToStory(row: SavedSeedRow, ownerId: string): Story {
 export async function fetchSavedSeeds(ownerId: string): Promise<Story[] | null> {
   if (!isBackendUp() || !isRealUuid(ownerId)) return null;
   try {
-    const { data, error } = await supabase!
-      .from("saved_seeds")
-      .select("*")
-      .eq("owner_id", ownerId)
-      .order("updated_at", { ascending: false });
+    const result = await withTimeout(
+      supabase!
+        .from("saved_seeds")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .order("updated_at", { ascending: false }),
+    );
+    if (!result) return null;
+    const { data, error } = result;
     if (error) throw error;
     return ((data as SavedSeedRow[]) ?? []).map((r) => savedSeedRowToStory(r, ownerId));
   } catch {

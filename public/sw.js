@@ -1,10 +1,7 @@
-const CACHE = "sprinter-shell-v1";
-const PRECACHE = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg", "/icon-maskable.svg"];
+const CACHE = "sprinter-shell-v2";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()),
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
@@ -21,6 +18,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (url.origin !== self.location.origin) return;
 
+  // Network-first for navigations with an offline cache fallback.
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
@@ -34,17 +32,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request).then((response) => {
-          if (response.ok && url.pathname.startsWith("/assets/")) {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        }),
-    ),
-  );
+  // Cache assets (hashed), otherwise network-only (never serve stale).
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      caches.match(event.request).then(
+        (cached) =>
+          cached ||
+          fetch(event.request).then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+            }
+            return response;
+          }),
+      ),
+    );
+    return;
+  }
+
+  // Everything else: pure network, never intercepted (avoids stale/dev hangs).
+  return;
 });
