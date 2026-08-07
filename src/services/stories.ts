@@ -4,6 +4,8 @@ import {
   fetchStoryById,
   fetchStoryBySlug,
   insertPublishedStory,
+  fetchSavedSeeds,
+  insertSavedSeed,
 } from "./supabase";
 import { useUserStore } from "@/stores/useUserStore";
 import type {
@@ -133,6 +135,9 @@ export async function createStory(input: NewStoryInput): Promise<Story> {
   };
   MY_SEEDS.unshift(story);
   persistLibrary();
+  if (user?.id && user.id !== "me") {
+    await insertSavedSeed(story, user.id);
+  }
   return story;
 }
 
@@ -199,6 +204,9 @@ export async function createFreeWrite(input: FreeWriteInput): Promise<Story> {
   };
   MY_SEEDS.unshift(story);
   persistLibrary();
+  if (user?.id && user.id !== "me") {
+    await insertSavedSeed(story, user.id);
+  }
   return story;
 }
 
@@ -210,6 +218,10 @@ export async function getStoryCount(): Promise<number> {
 
 export async function getSavedStories(): Promise<Story[]> {
   const me = useUserStore.getState().user?.id ?? "me";
+  if (me !== "me") {
+    const remote = await fetchSavedSeeds(me);
+    if (remote) return remote;
+  }
   return MY_SEEDS.filter((s) => s.seedAuthorId === me).map((s) => ({
     ...s,
     contributorIds: [...s.contributorIds],

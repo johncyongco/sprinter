@@ -47,6 +47,45 @@ create index if not exists continuations_story_id_idx on public.continuations (s
 create index if not exists continuations_author_id_idx on public.continuations (author_id);
 create index if not exists stories_author_id_idx on public.stories (seed_author_id);
 
+-- A writer's own unpublished seeds, synced to their account so saved work
+-- survives across devices. Private — only the owner can read or write these.
+create table if not exists public.saved_seeds (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null default auth.uid(),
+  slug text not null,
+  title text not null,
+  cover text,
+  genres text[] not null default '{}',
+  emotion text[] not null default '{}',
+  themes text[] not null default '{}',
+  perspective text not null default 'Third',
+  pacing text not null default 'Measured',
+  status text not null default 'Seed',
+  body text not null default '',
+  words integer not null default 0,
+  reading_minutes integer not null default 1,
+  completion integer not null default 5,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.saved_seeds enable row level security;
+
+drop policy if exists "owner read saved seeds" on public.saved_seeds;
+create policy "owner read saved seeds"
+on public.saved_seeds for select to authenticated
+using (owner_id = auth.uid());
+
+drop policy if exists "owner insert saved seeds" on public.saved_seeds;
+create policy "owner insert saved seeds"
+on public.saved_seeds for insert to authenticated
+with check (owner_id = auth.uid());
+
+drop policy if exists "owner update saved seeds" on public.saved_seeds;
+create policy "owner update saved seeds"
+on public.saved_seeds for update to authenticated
+using (owner_id = auth.uid());
+
 -- Row Level Security: anyone can read published stories, but only the
 -- writer of a row can create/update their own. This keeps the anon
 -- key safe in the frontend while allowing real Google sign-in to publish.

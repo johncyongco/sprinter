@@ -47,6 +47,26 @@ export interface ContinuationRow {
   story?: StoryRow | null;
 }
 
+export interface SavedSeedRow {
+  id: string;
+  owner_id: string;
+  slug: string;
+  title: string;
+  cover: string | null;
+  genres: string[] | null;
+  emotion: string[] | null;
+  themes: string[] | null;
+  perspective: string;
+  pacing: string;
+  status: string;
+  body: string;
+  words: number;
+  reading_minutes: number;
+  completion: number;
+  created_at: string;
+  updated_at: string;
+}
+
 function isBackendUp(): boolean {
   return supabase !== null;
 }
@@ -289,5 +309,110 @@ export async function fetchStoriesByAuthor(authorId: string): Promise<Story[] | 
     return ((data as StoryRow[]) ?? []).map(storyRowToStory);
   } catch {
     return null;
+  }
+}
+
+/* ------------------------ saved seeds ------------------------ */
+
+export function savedSeedRowToStory(row: SavedSeedRow, ownerId: string): Story {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    cover: row.cover ?? "",
+    seedAuthorId: ownerId,
+    genres: asStringArray(row.genres),
+    emotion: asStringArray(row.emotion),
+    themes: asStringArray(row.themes),
+    perspective: row.perspective as Story["perspective"],
+    pacing: row.pacing as Story["pacing"],
+    status: row.status as Story["status"],
+    createdAt: (row.created_at ?? "").slice(0, 10),
+    updatedAt: (row.updated_at ?? row.created_at ?? "").slice(0, 10),
+    body: row.body,
+    words: row.words,
+    readingMinutes: row.reading_minutes,
+    beautifulWords: [],
+    completion: row.completion,
+    contributorIds: [ownerId],
+    branchCount: 0,
+    continuationCount: 0,
+    critiqueCount: 0,
+    isEditorialPick: false,
+    isWeeklyPrompt: false,
+    excerpt: row.body.split(/\s+/).slice(0, 42).join(" ") + "…",
+  };
+}
+
+export async function fetchSavedSeeds(ownerId: string): Promise<Story[] | null> {
+  if (!isBackendUp() || !isRealUuid(ownerId)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("saved_seeds")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    return ((data as SavedSeedRow[]) ?? []).map((r) => savedSeedRowToStory(r, ownerId));
+  } catch {
+    return null;
+  }
+}
+
+export async function insertSavedSeed(story: Story, ownerId: string): Promise<Story | null> {
+  if (!isBackendUp() || !isRealUuid(ownerId)) return null;
+  try {
+    const { data, error } = await supabase!
+      .from("saved_seeds")
+      .insert({
+        owner_id: ownerId,
+        slug: story.slug,
+        title: story.title,
+        cover: story.cover || null,
+        genres: story.genres,
+        emotion: story.emotion,
+        themes: story.themes,
+        perspective: story.perspective,
+        pacing: story.pacing,
+        status: story.status,
+        body: story.body,
+        words: story.words,
+        reading_minutes: story.readingMinutes,
+        completion: story.completion,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return savedSeedRowToStory(data as SavedSeedRow, ownerId);
+  } catch {
+    return null;
+  }
+}
+
+export async function insertSavedSeedsBatch(stories: Story[], ownerId: string): Promise<number> {
+  if (!isBackendUp() || !isRealUuid(ownerId) || stories.length === 0) return 0;
+  try {
+    const { error } = await supabase!.from("saved_seeds").insert(
+      stories.map((s) => ({
+        owner_id: ownerId,
+        slug: s.slug,
+        title: s.title,
+        cover: s.cover || null,
+        genres: s.genres,
+        emotion: s.emotion,
+        themes: s.themes,
+        perspective: s.perspective,
+        pacing: s.pacing,
+        status: s.status,
+        body: s.body,
+        words: s.words,
+        reading_minutes: s.readingMinutes,
+        completion: s.completion,
+      })),
+    );
+    if (error) throw error;
+    return stories.length;
+  } catch {
+    return 0;
   }
 }

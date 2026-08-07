@@ -4,6 +4,7 @@ import { MotionConfig } from "framer-motion";
 import { useUserStore } from "@/stores/useUserStore";
 import { useUIStore, type ThemeMode } from "@/stores/useUIStore";
 import { onAuthStateChange, supabaseUserToProfile } from "@/services/auth";
+import { SyncPrompt } from "@/components/common/SyncPrompt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +94,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ThemeColor />
         <AuthRoot />
         {children}
+        <SyncPrompt />
       </MotionConfig>
     </QueryClientProvider>
   );
